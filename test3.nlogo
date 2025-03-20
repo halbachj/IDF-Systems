@@ -1,12 +1,19 @@
 globals [
   similar-nearby
+  personality-nearby
   sad
 ]
 
+; Trinity definitions
+; arts humanities social sciences
+; health sciences
+; stem
+
 breed [stems stem]
 breed [hums hum]
+breed [healths health]
 
-turtles-own [stem-friends hum-friends happy?]
+turtles-own [stem-friends hum-friends health-friends happy? personality]
 
 
 to setup
@@ -22,7 +29,14 @@ to setup
     set color red
   ]
 
+  create-healths healths-population [
+    set shape "person"
+    setxy random-xcor random-ycor
+    set color green
+  ]
+
   ask turtles [set happy? 0]
+  ask turtles [set personality random 360]
 
   reset-ticks
 end
@@ -42,9 +56,20 @@ to export_plot1
   export-plot "plot_1" "" ;add filehandle here;
 end
 
+to-report compare-personality
+  let my-personality [ personality ] of myself
+  let raw-difference (my-personality - personality) mod 360
+  let difference ifelse-value (raw-difference > 180) [ 360 - raw-difference ] [ raw-difference ]
+  report difference <= personality-similarity
+end
+
 to find-friends
   set similar-nearby count (turtles-on neighbors)  with [ breed = [ breed ] of myself ]
-  if similar-nearby >= min-friends-happy [
+  set personality-nearby count (turtles-on neighbors)  with [ compare-personality ]
+
+  let happiness ( similar-nearby + personality-nearby ) / 2
+
+  if happiness >= min-happiness [
     set happy? 1
   ]
 
@@ -116,10 +141,10 @@ NIL
 1
 
 SLIDER
-781
-77
-953
-110
+787
+81
+959
+114
 hums-population
 hums-population
 0
@@ -131,10 +156,10 @@ NIL
 HORIZONTAL
 
 SLIDER
-782
-120
-954
-153
+788
+125
+960
+158
 stem-population
 stem-population
 0
@@ -146,25 +171,25 @@ NIL
 HORIZONTAL
 
 SLIDER
-783
-166
-955
-199
-min-friends-happy
-min-friends-happy
+789
+224
+961
+257
+min-happiness
+min-happiness
 0
 10
-3.0
+1.0
 1
 1
 NIL
 HORIZONTAL
 
 PLOT
-776
-230
-976
-380
+791
+285
+991
+435
 plot_1
 time
 happy-students
@@ -180,10 +205,10 @@ PENS
 "happy-hums" 1.0 0 -7500403 true "" "plot count hums with [happy? = 1]"
 
 BUTTON
-779
-392
-876
-425
+794
+447
+891
+480
 NIL
 export_plot1
 NIL
@@ -197,14 +222,44 @@ NIL
 1
 
 TEXTBOX
-899
-402
-1049
-441
+914
+457
+1064
+496
 add filehandle in the \"export\" command to export plot1 data to a CSV file\n
 10
 0.0
 1
+
+SLIDER
+788
+170
+961
+203
+healths-population
+healths-population
+0
+100
+76.0
+1
+1
+NIL
+HORIZONTAL
+
+SLIDER
+1042
+171
+1234
+204
+personality-similarity
+personality-similarity
+0
+10
+1.1
+0.1
+1
+NIL
+HORIZONTAL
 
 @#$#@#$#@
 ## WHAT IS IT?
