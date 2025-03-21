@@ -43,12 +43,9 @@ class ResultDataSet:
         self.read_csv(path)
 
     def clean_up_raw_csv(self, raw_csv: [str]):
-        column_headers = raw_csv[0].strip().split(",")
-        num_cols = 0
-        for header in column_headers:
-            if len(header) > 0:
-                num_cols += 1
-        column_headers += [''] * num_cols
+        column_headers = raw_csv[0].strip()
+        column_headers += ("," * 3)
+        column_headers = column_headers.split(",")
         new_headers = []
         current_header = ""
         for header in column_headers:
