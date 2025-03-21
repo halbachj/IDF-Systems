@@ -48,7 +48,7 @@ end
 to go
   tick
   ask turtles [
-    find-friends
+    make-friends
     if happy? != 1 [
       right random 90
       forward 5
@@ -72,13 +72,19 @@ to-report wrap-angle [angle]
 end
 
 
-to find-friends
-  set similar-nearby count (turtles-on neighbors)  with [ breed = [ breed ] of myself ]
-  set personality-nearby count (turtles-on neighbors)  with [ compare-personality ]
+to make-friends
+  let potential-friend one-of turtles-on neighbors
 
-  let happiness ( similar-nearby + personality-nearby ) / 2
+  let similar-breed breed = [ breed ] of myself
+  ;if breed = [ breed ] of myself [
+  ;  set similar-breed 1
+  ;]
 
-  if happiness >= min-happiness [
+  let similar-personality (personality-similarity / (personality-similarity - compare-personality))
+
+  let similarity-score (similar-breed + similar-personality) / 2
+
+  if similarity-score >= min-happiness [
     set happy? 1
   ]
 
@@ -188,7 +194,7 @@ min-happiness
 min-happiness
 0
 5
-2.3
+2.8
 0.1
 1
 NIL
@@ -265,7 +271,7 @@ personality-similarity
 personality-similarity
 0
 10
-2.1
+7.7
 0.1
 1
 NIL
@@ -277,7 +283,7 @@ INPUTBOX
 266
 506
 file-handle
-measurement_001.csv
+measurement_002.csv
 1
 0
 String
@@ -310,8 +316,8 @@ SLIDER
 personality-sigma
 personality-sigma
 10
-50
-47.0
+70
+64.0
 1
 1
 NIL
