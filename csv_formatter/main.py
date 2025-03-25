@@ -1,11 +1,12 @@
 import argparse
 import glob
-import io
+import csv
 import logging
 import os
 from datetime import datetime
 
 import pandas as pd
+
 
 # Create a logger
 logger = logging.getLogger("csv_formatter_logger")
@@ -21,7 +22,7 @@ def setup_logger():
 
     # Create a console (stdout) handler
     console_handler = logging.StreamHandler()
-    console_handler.setLevel(logging.INFO)  # Only log INFO and above to stdout
+    console_handler.setLevel(logging.DEBUG)  # Only log INFO and above to stdout
 
     # Define a formatter
     formatter = logging.Formatter("%(asctime)s - %(levelname)s - %(message)s")
@@ -36,56 +37,150 @@ def setup_logger():
 
 
 class ResultDataSet:
-    data: pd.DataFrame = None
-    header: list = None
-
     def __init__(self, path: str):
-        self.read_csv(path)
+        """Initialize the object and read the CSV file."""
+        self.path = path
+        self.model_settings = {}  # Stores named tables from model settings
+        self.plots = {}  # Stores plot-related tables
+        self._read_csv(path)
+        self._clean_data_frames()
+        self._reorganize_data()
+        #logger.debug(f"CSV formatter read complete.\n{self.plots["plot_1"][2].head()}")
 
-    def clean_up_raw_csv(self, raw_csv: [str]):
-        column_headers = raw_csv[0].strip()
-        column_headers += ("," * 3)
-        column_headers = column_headers.split(",")
-        new_headers = []
+    def _read_csv(self, path):
+        """Reads the CSV file and extracts tables."""
+        with open(path, 'r', encoding='utf-8') as f:
+            reader = csv.reader(f)
+
+            current_section = None
+            current_data = []
+            in_model_settings = True
+            current_plot = None
+            plot_stage = 0  # 0: Plot Metadata, 1: Graph Descriptions, 2: Graph Data
+
+            self.header = reader.__next__()
+            self.file_name = reader.__next__()
+            self.time = reader.__next__()
+
+            for row in reader:
+                if not row:
+                    continue  # Skip empty rows
+
+                if len(row) == 1:  # New section or plot name
+                    section_name = row[0].strip('"')
+
+                    # Save previous table
+                    if current_section and current_data:
+                        self._store_table(current_section, current_data, in_model_settings, current_plot, plot_stage)
+
+                    # Transition from model settings to plots
+                    if in_model_settings and section_name != "MODEL SETTINGS":
+                        in_model_settings = False
+                        plot_stage = 0
+
+                    if not in_model_settings:
+                        current_plot = section_name
+                        self.plots[current_plot] = {}
+                        plot_stage = 0
+                    else:
+                        current_section = section_name
+
+                    current_data = []
+                    continue
+
+                # Transition between plot tables
+                if not in_model_settings and plot_stage < 2:
+                    if len(current_data) > 1 and len(current_data[0]) != len(row):
+                        self._store_table(current_plot, current_data, in_model_settings, current_plot, plot_stage)
+                        current_data = []
+                        plot_stage += 1
+
+                # Fix malformed multi-index header for Graph Data
+                if not in_model_settings and plot_stage == 2 and not current_data:
+                    next_row = next(reader, [])
+                    if next_row and len(next_row) > len(row):
+                        row = self._fix_multiindex_header(row, next_row)
+                        current_data.append(row)
+                        row = next_row
+                current_data.append(row)
+            # Save the last processed table
+            if current_plot and current_data and plot_stage==2:
+                self._store_table(current_plot, current_data, in_model_settings, current_plot, plot_stage, True)
+
+    def _reorganize_data(self):
+        for i, (k, plot) in enumerate(self.plots.items()):
+            data = plot[2].stack(level=0, future_stack=True)
+            data = data.iloc[data.index.get_level_values(1).argsort(kind='stable')]
+            data.index.names = ["index", "course"]
+            data.drop(columns=["color", "pen down?"], inplace=True)
+            data.rename(columns={"x": "ticks", "y": "happy"}, inplace=True)
+            #logger.debug(data.index)
+            plot[3] = data
+
+    def _store_table(self, name, data, in_model_settings, plot_name=None, plot_stage=None, multi_index=False):
+        """Converts a parsed table into a DataFrame and stores it."""
+
+        df = pd.DataFrame(data[1:], columns=data[0])
+        if multi_index:
+            df.columns = pd.MultiIndex.from_tuples(zip(df.columns, df.iloc[0]))  # Assign first row as column headers
+            df = df[1:].reset_index(drop=True)  # Drop the first row and reset index
+        try:
+            df = df.apply(pd.to_numeric)
+        except ValueError: # nothing to wory about
+            pass
+
+        if in_model_settings:
+            self.model_settings[name] = df
+        else:
+            self.plots[plot_name][plot_stage] = df
+
+    def _fix_multiindex_header(self, header_row, data_row):
+        """Expands a malformed multi-index header by adding missing commas."""
+        fixed_header = []
+        col_idx = 0
+
+        for value in header_row:
+            fixed_header.append(value)
+            if value:
+                col_idx += 4  # Each plot has 4 sub-columns (x, y, color, pen down)
+            else:
+                col_idx += 1
+
+        while len(fixed_header) < len(data_row):
+            fixed_header.append("")  # Fill missing columns
+
         current_header = ""
-        for header in column_headers:
-            if len(header) > 0: # header needs to be saved
-                logger.debug(f"reading header: {header}")
+        for i, header in enumerate(fixed_header):
+            header = header.strip('"')
+            if len(header) >= 1:
                 current_header = header
-            new_headers.append(current_header)
-        final_headers = ",".join(new_headers)
-        final_headers = final_headers.strip(",\n") + "\n"
-        logger.debug(final_headers)
-        raw_csv[0] = final_headers
-        return raw_csv
+            fixed_header[i] = current_header
 
+        return fixed_header
 
-    def parse_raw_csv(self, raw_data: io.StringIO):
-        self.data = pd.read_csv(raw_data, header=[0, 1])
-        self.data.columns = self.data.columns.map(lambda x: (x[0].strip('"'), x[1].strip('"')))
-        self.data = self.data.apply(pd.to_numeric)
+    def print_summary(self):
+        """Prints a summary of the extracted tables."""
+        print("MODEL SETTINGS:")
+        for name, df in self.model_settings.items():
+            print(f"\n{name}:")
+            print(df)
 
-    def read_csv(self, path):
-        with open(path, "r") as csv_file:
-            raw_data = csv_file.readlines() # read the file header first
-            self.header = raw_data[:17]
-            clean_csv = self.clean_up_raw_csv(raw_data[17:])
-            clean_csv_buffer = io.StringIO("".join(clean_csv))
-            self.parse_raw_csv(clean_csv_buffer)
+        print("\nPLOTS:")
+        for plot_name, plot_data in self.plots.items():
+            print(f"\nPlot: {plot_name}")
+            for stage, df in plot_data.items():
+                stage_name = ["Plot Metadata", "Graph Descriptions", "Graph Data", "Reorganized Graph Data"][stage]
+                print(f"\n{stage_name}:")
+                print(df)
 
-    def reorganize_data(self):
-        self.data = self.data.stack(level=0, future_stack=True)
-        self.data = self.data.iloc[self.data.index.get_level_values(1).argsort(kind='stable')]
-        self.data.index.names = ["index", "course"]
-        self.data.drop(columns=["color", "pen down?"], inplace=True)
-        self.data.rename(columns={"x": "ticks", "y": "happy"}, inplace=True)
-        logger.debug(self.data.index)
+    def _clean_data_frames(self):
+        for plot_name in self.plots.keys():
+            for stage in self.plots[plot_name].keys():
+                self.plots[plot_name][stage] = (self.plots[plot_name][stage]
+                                                .map(lambda x: (x.replace('"', '') if isinstance(x, str) else x)))
 
-    def export_csv(self, path):
-        output = "".join(self.header)
-        output += self.data.reset_index(level=0, drop=True).to_csv()
-        with open(path, "w") as csv_file:
-            csv_file.write(output)
+    def export_csv(self, output_file):
+        pass
 
 
 def process_files(input_pattern, output_folder):
@@ -97,10 +192,11 @@ def process_files(input_pattern, output_folder):
     for file in files:
         logger.info(f"Processing file: {file}")
         data = ResultDataSet(file)
-        data.reorganize_data()
+        #data.print_summary()
         output_file = os.path.join(output_folder, os.path.basename(file))
         data.export_csv(output_file)
         logger.info(f"Exported to: {output_file}")
+
 
 def main():
     setup_logger()
