@@ -179,8 +179,10 @@ class ResultDataSet:
                 self.plots[plot_name][stage] = (self.plots[plot_name][stage]
                                                 .map(lambda x: (x.replace('"', '') if isinstance(x, str) else x)))
 
-    def export_csv(self, output_file):
-        pass
+    def export_csv(self, output_path, file_name):
+        for plot_key in self.plots.keys():
+            path = os.path.join(output_path, f"{file_name}_{plot_key}.csv")
+            self.plots[plot_key][3].reset_index(level=0, drop=True).to_csv(path)
 
 
 def process_files(input_pattern, output_folder):
@@ -193,9 +195,8 @@ def process_files(input_pattern, output_folder):
         logger.info(f"Processing file: {file}")
         data = ResultDataSet(file)
         #data.print_summary()
-        output_file = os.path.join(output_folder, os.path.basename(file))
-        data.export_csv(output_file)
-        logger.info(f"Exported to: {output_file}")
+        data.export_csv(output_folder, os.path.basename(file.strip(".csv")))
+        logger.info(f"Exported to: {os.path.join(output_folder, os.path.basename(file.strip(".csv")))}")
 
 
 def main():
