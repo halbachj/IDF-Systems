@@ -1,47 +1,111 @@
-globals [
-  similar-nearby
-  personality-nearby
-  sad
-]
+globals []
 
-; Trinity definitions
-; arts humanities social sciences
-; health sciences
-; stem
-
-breed [stems stem]
 breed [hums hum]
-breed [healths health]
+breed [stems stem]
+breed [meds med]
+breed [buss bus]
 
-; distribute personalities as a bell curve. Different branches have different mean between 0 and 360. That means that ther will be overlap between the different curves
-
-turtles-own [happy? personality course]
+turtles-own [happy? personality course emotional-capacity extrovert]
 
 to setup
   clear-all
-  let sigma personality-sigma
-  create-stems stem-population [
-    set shape "person"
-    setxy random-xcor random-ycor
-    set color blue
-    set personality wrap-angle random-normal 0 sigma  ; Gaussian centered at 0°
-    set course random 10 ; STEM has courses 0-9
+  let x-center world-width / 2
+  let y-center world-height / 2
+  let faculty-radius world-width / 4
+  let course-radius faculty-radius / 2
+  let agent-radius course-radius / 2
+
+  let stem-region 0
+  let hum-region 90
+  let med-region 180
+  let bus-region 270
+
+  let x-center-course-region faculty-radius * cos stem-region
+  let y-center-course-region faculty-radius * sin stem-region
+  let angular-distance 360 / stem-courses
+  let i 0
+  repeat stem-courses [ ;; WTF NO FOR LOOPS kms
+    let course-density random-normal stem-population stem-course-density-distribution
+    let x-center-agent-region ( ( course-radius * cos (angular-distance * i) ) + x-center-course-region )
+    let y-center-agent-region ( ( course-radius * sin (angular-distance * i) ) + y-center-course-region )
+    create-stems course-density [
+      set shape "circle"
+      set color blue
+      let angle (who * 360 / course-density)
+      let x-coord agent-radius * cos angle + x-center-agent-region
+      let y-coord agent-radius * sin angle + y-center-agent-region
+      setxy x-coord y-coord
+      set personality wrap-angle random-normal 0 sigma  ; Gaussian centered at 0°
+      set course i
+      set emotional-capacity random 10
+    ]
+    set i (i + 1)
   ]
 
-  create-hums hums-population [
-    set shape "person"
-    setxy random-xcor random-ycor
-    set color red
-    set personality wrap-angle random-normal 120 sigma  ; Gaussian centered at 120°
-    set course random 10 + 10 ; Humanities has courses 10-19
+  set x-center-course-region faculty-radius * cos hum-region
+  set y-center-course-region faculty-radius * sin hum-region
+  set angular-distance 360 / hum-courses
+  set i 0
+  repeat hum-courses [
+    let course-density random-normal hum-population hum-course-density-distribution
+    let x-center-agent-region ( course-radius * cos (angular-distance * i) ) + x-center-course-region
+    let y-center-agent-region ( course-radius * sin (angular-distance * i) ) + y-center-course-region
+    create-hums course-density [
+      set shape "circle"
+      set color red
+      let angle (who * 360 / course-density)
+      let x-coord agent-radius * cos angle + x-center-agent-region
+      let y-coord agent-radius * sin angle + y-center-agent-region
+      setxy x-coord y-coord
+      set personality wrap-angle random-normal 90 sigma  ; Gaussian centered at 0°
+      set course i
+      set emotional-capacity random 10
+    ]
+    set i (i + 1)
   ]
 
-  create-healths healths-population [
-    set shape "person"
-    setxy random-xcor random-ycor
-    set color green
-    set personality wrap-angle random-normal 240 sigma  ; Gaussian centered at 240°
-    set course random 10 + 20 ; Health has courses 20-29
+  set x-center-course-region faculty-radius * cos med-region
+  set y-center-course-region faculty-radius * sin med-region
+  set angular-distance 360 / med-courses
+  set i 0
+  repeat med-courses [
+    let course-density random-normal med-population med-course-density-distribution
+    let x-center-agent-region ( course-radius * cos (angular-distance * i) ) + x-center-course-region
+    let y-center-agent-region ( course-radius * sin (angular-distance * i) ) + y-center-course-region
+    create-meds course-density [
+      set shape "circle"
+      set color green
+      let angle (who * 360 / course-density)
+      let x-coord agent-radius * cos angle + x-center-agent-region
+      let y-coord agent-radius * sin angle + y-center-agent-region
+      setxy x-coord y-coord
+      set personality wrap-angle random-normal 180 sigma  ; Gaussian centered at 0°
+      set course i
+      set emotional-capacity random 10
+    ]
+    set i (i + 1)
+  ]
+
+  set x-center-course-region faculty-radius * cos bus-region
+  set y-center-course-region faculty-radius * sin bus-region
+  set angular-distance 360 / bus-courses
+  set i 0
+  repeat bus-courses [
+    let course-density random-normal bus-population bus-course-density-distribution
+    let x-center-agent-region ( course-radius * cos (angular-distance * i) ) + x-center-course-region
+    let y-center-agent-region ( course-radius * sin (angular-distance * i) ) + y-center-course-region
+    create-buss course-density [
+      set shape "circle"
+      set color grey
+      let angle (who * 360 / course-density)
+      let x-coord agent-radius * cos angle + x-center-agent-region
+      let y-coord agent-radius * sin angle + y-center-agent-region
+      setxy x-coord y-coord
+      set personality wrap-angle random-normal 270 sigma  ; Gaussian centered at 0°
+      set course i
+      set emotional-capacity random 10
+    ]
+    set i (i + 1)
   ]
 
   ask turtles [set happy? false]
@@ -49,82 +113,27 @@ to setup
   reset-ticks
 end
 
-to go
-  tick
-  ask turtles [
-    make-friends
-    ; check if time for meeting if not clear meeting spots
-
-    if (time mod 50 = 0) and (time-active = 0) [
-      ; determine meeting spots
-      set time-active 50  ; Set the flag to be true for 50 steps
-    ]
-
-    if (time-active > 0) [
-      set time-active time-active - 1
-      if (time-active = 0) [
-        set flag false  ; Reset flag after time-active reaches 0
-      ]
-    ]
-      ; assign meeting spots to courses
-    ]
-    ; if not time for meeting clear meeting spots
-
-    ; ask the turtles if they have meeting spot
-    ; if meeting spot then move towards meeting spot
-    ; if no meeting spot move randomly
-
-    ;if not happy? [
-    ;  right random 360
-    ;  forward 5
-    ;]
-  ]
-end
-
-to export_plot1
-  export-plot "plot_1" file-handle ;add filehandle here;
-end
-
-to-report compare-personality [candidate]
-  let raw-difference (personality - [personality] of candidate) mod 360
-  let difference ifelse-value (raw-difference > 180) [360 - raw-difference] [raw-difference]
-  report 1 / difference
-end
-
 to-report wrap-angle [angle]
   report (angle mod 360)
 end
 
 
-to make-friends
-  let potential-friend one-of (turtles-on neighbors)
-  if potential-friend != nobody [
-    if not link-neighbor? potential-friend [
+to go
+  let new-friends 0
+  let cross-friends 0
 
-      let personality-score compare-personality potential-friend
-      let breed-score ifelse-value ([breed] of potential-friend = breed) [1] [0]
+  ask turtles [
 
-      let threshold min-happiness ;; Adjust based on how hard it is to make friends
-
-      let friendship-score (personality-score * personality-weight) + (breed-score * breed-weight)
-
-      if friendship-score >= threshold [
-        ;create-link-with potential-friend
-        set happy? true
-      ]
-    ]
   ]
-end
 
-; cost of friendship based on slider
-; max friendship energy based on slider
-; move with friend group in a dynamic manner
+  tick
+end
 @#$#@#$#@
 GRAPHICS-WINDOW
-588
-10
-3209
-2632
+415
+15
+26436
+26037
 -1
 -1
 13.0
@@ -134,13 +143,13 @@ GRAPHICS-WINDOW
 1
 1
 0
-0
-0
 1
--100
-100
--100
-100
+1
+1
+-1000
+1000
+-1000
+1000
 0
 0
 1
@@ -149,9 +158,9 @@ ticks
 
 BUTTON
 15
-16
-78
-49
+15
+80
+50
 NIL
 setup
 NIL
@@ -164,202 +173,218 @@ NIL
 NIL
 1
 
-BUTTON
-110
-17
-173
-50
-NIL
-go
-T
-1
-T
-OBSERVER
-NIL
-NIL
-NIL
-NIL
-1
-
 SLIDER
-16
-79
-188
-112
-hums-population
-hums-population
+15
+55
+195
+88
+hum-population
+hum-population
 0
-5000
-3822.0
+10000
+5212.0
 1
 1
 NIL
 HORIZONTAL
 
 SLIDER
-17
-123
-189
-156
+205
+55
+400
+88
+hum-courses
+hum-courses
+0
+35
+17.0
+1
+1
+NIL
+HORIZONTAL
+
+SLIDER
+11
+142
+191
+175
 stem-population
 stem-population
 0
-5000
-3344.0
+10000
+6909.0
 1
 1
 NIL
 HORIZONTAL
 
 SLIDER
-18
-222
-190
-255
-min-happiness
-min-happiness
-0
-5
-2.0
-0.1
-1
-NIL
-HORIZONTAL
-
-PLOT
-20
-283
-220
-433
-plot_1
-time
-happy-students
-0.0
-100.0
-0.0
-150.0
-true
-false
-"" ""
-PENS
-"happy-stem" 1.0 0 -16777216 true "" "plot count stems with [happy? = 1]"
-"happy-hums" 1.0 0 -7500403 true "" "plot count hums with [happy? = 1]"
-"happy-healths" 1.0 0 -2674135 true "" "plot count healths with [happy? = 1]"
-
-BUTTON
-272
-446
-369
-507
-NIL
-export_plot1
-NIL
-1
-T
-OBSERVER
-NIL
-NIL
-NIL
-NIL
-1
-
-TEXTBOX
-23
-512
-173
-551
-add filehandle in the \"export\" command to export plot1 data to a CSV file\n
-10
-0.0
-1
-
-SLIDER
-17
-168
-198
 201
-healths-population
-healths-population
+142
+396
+175
+stem-courses
+stem-courses
 0
-5000
-3614.0
+35
+26.0
 1
 1
 NIL
 HORIZONTAL
 
 SLIDER
-246
-79
-438
-112
-personality-weight
-personality-weight
+12
+231
+192
+264
+med-population
+med-population
 0
+10000
+6000.0
 1
-1.0
-0.01
 1
 NIL
 HORIZONTAL
 
-INPUTBOX
-21
-446
-266
-506
-file-handle
-measurement_002.csv
-1
+SLIDER
+202
+231
+397
+264
+med-courses
+med-courses
 0
-String
+35
+10.0
+1
+1
+NIL
+HORIZONTAL
+
+SLIDER
+10
+320
+190
+353
+bus-population
+bus-population
+0
+10000
+4909.0
+1
+1
+NIL
+HORIZONTAL
+
+SLIDER
+200
+320
+395
+353
+bus-courses
+bus-courses
+0
+35
+8.0
+1
+1
+NIL
+HORIZONTAL
+
+SLIDER
+9
+418
+42
+538
+sigma
+sigma
+0
+100
+51.0
+1
+1
+NIL
+VERTICAL
 
 PLOT
-279
-285
-549
-435
-Personality distribution
+49
+418
+394
+538
+personality distribution
 NIL
 NIL
 0.0
-360.0
+10.0
 0.0
 10.0
 true
-true
-"set-plot-x-range -10 370\nset-histogram-num-bars 360" ""
+false
+"set-plot-x-range 0 360\nset-histogram-num-bars 360" ""
 PENS
-"stems" 1.0 0 -16777216 true "" "histogram [personality] of stems"
-"hums" 1.0 0 -7500403 true "" "histogram [personality] of hums"
-"healths" 1.0 0 -2674135 true "" "histogram [personality] of healths"
+"default" 1.0 0 -13345367 true "" "histogram [personality] of stems"
+"pen-1" 1.0 0 -2674135 true "" "histogram [personality] of hums"
+"pen-2" 1.0 0 -10899396 true "" "histogram [personality] of meds"
+"pen-3" 1.0 0 -7500403 true "" "histogram [personality] of buss"
 
 SLIDER
-278
-241
-450
-274
-personality-sigma
-personality-sigma
-10
-70
-50.0
+13
+182
+394
+215
+stem-course-density-distribution
+stem-course-density-distribution
+0
+100
+80.0
 1
 1
 NIL
 HORIZONTAL
 
 SLIDER
-246
-135
-439
-168
-breed-weight
-breed-weight
+14
+97
+397
+130
+hum-course-density-distribution
+hum-course-density-distribution
 0
+100
+80.0
 1
-1.0
-0.01
+1
+NIL
+HORIZONTAL
+
+SLIDER
+11
+270
+397
+303
+med-course-density-distribution
+med-course-density-distribution
+0
+100
+83.0
+1
+1
+NIL
+HORIZONTAL
+
+SLIDER
+11
+362
+394
+395
+bus-course-density-distribution
+bus-course-density-distribution
+0
+100
+82.0
+1
 1
 NIL
 HORIZONTAL
