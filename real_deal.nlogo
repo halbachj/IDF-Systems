@@ -1,11 +1,18 @@
-globals []
+globals [societies]
 
 breed [hums hum]
 breed [stems stem]
 breed [meds med]
 breed [buss bus]
 
-turtles-own [happy? personality course emotional-capacity extrovert]
+undirected-link-breed [course-friendships course-friendship]
+undirected-link-breed [cross-course-friendships cross-course-friendship]
+
+turtles-own [friends cross-friends personality course emotional-capacity extroversion society]
+
+to-report calculate-society [ pers num ]
+  report ((( round ( pers * (num / 360) ) ) / num ) * 360 )
+end
 
 to setup
   clear-all
@@ -15,15 +22,24 @@ to setup
   let course-radius faculty-radius / 2
   let agent-radius course-radius / 2
 
+  let society-angular-difference (360 / num-societies)
+
   let stem-region 0
+  let stem-course-offset 0
+
   let hum-region 90
+  let hum-course-offset stem-course-offset + stem-courses
+
   let med-region 180
+  let med-course-offset hum-course-offset + hum-courses
+
   let bus-region 270
+  let bus-course-offset med-course-offset + med-courses
 
   let x-center-course-region faculty-radius * cos stem-region
   let y-center-course-region faculty-radius * sin stem-region
   let angular-distance 360 / stem-courses
-  let i 0
+  let i stem-course-offset
   repeat stem-courses [ ;; WTF NO FOR LOOPS kms
     let course-density random-normal stem-population stem-course-density-distribution
     let x-center-agent-region ( ( course-radius * cos (angular-distance * i) ) + x-center-course-region )
@@ -37,7 +53,9 @@ to setup
       setxy x-coord y-coord
       set personality wrap-angle random-normal 0 sigma  ; Gaussian centered at 0°
       set course i
-      set emotional-capacity random 10
+      set extroversion random-normal extroversion-mean extroversion-distribution
+      set society calculate-society personality num-societies ; does not necessarily go to it's own society but will choose societies close to it
+      set emotional-capacity ( (random 10) * extroversion )
     ]
     set i (i + 1)
   ]
@@ -45,7 +63,7 @@ to setup
   set x-center-course-region faculty-radius * cos hum-region
   set y-center-course-region faculty-radius * sin hum-region
   set angular-distance 360 / hum-courses
-  set i 0
+  set i hum-course-offset
   repeat hum-courses [
     let course-density random-normal hum-population hum-course-density-distribution
     let x-center-agent-region ( course-radius * cos (angular-distance * i) ) + x-center-course-region
@@ -59,7 +77,9 @@ to setup
       setxy x-coord y-coord
       set personality wrap-angle random-normal 90 sigma  ; Gaussian centered at 0°
       set course i
-      set emotional-capacity random 10
+      set extroversion random-normal extroversion-mean extroversion-distribution
+      set society calculate-society personality num-societies ; does not necessarily go to it's own society but will choose societies close to it
+      set emotional-capacity ( (random 10) * extroversion )
     ]
     set i (i + 1)
   ]
@@ -67,7 +87,7 @@ to setup
   set x-center-course-region faculty-radius * cos med-region
   set y-center-course-region faculty-radius * sin med-region
   set angular-distance 360 / med-courses
-  set i 0
+  set i med-course-offset
   repeat med-courses [
     let course-density random-normal med-population med-course-density-distribution
     let x-center-agent-region ( course-radius * cos (angular-distance * i) ) + x-center-course-region
@@ -81,7 +101,9 @@ to setup
       setxy x-coord y-coord
       set personality wrap-angle random-normal 180 sigma  ; Gaussian centered at 0°
       set course i
-      set emotional-capacity random 10
+      set extroversion random-normal extroversion-mean extroversion-distribution
+      set society calculate-society personality num-societies ; does not necessarily go to it's own society but will choose societies close to it
+      set emotional-capacity ( (random 10) * extroversion )
     ]
     set i (i + 1)
   ]
@@ -89,7 +111,7 @@ to setup
   set x-center-course-region faculty-radius * cos bus-region
   set y-center-course-region faculty-radius * sin bus-region
   set angular-distance 360 / bus-courses
-  set i 0
+  set i bus-course-offset
   repeat bus-courses [
     let course-density random-normal bus-population bus-course-density-distribution
     let x-center-agent-region ( course-radius * cos (angular-distance * i) ) + x-center-course-region
@@ -103,12 +125,14 @@ to setup
       setxy x-coord y-coord
       set personality wrap-angle random-normal 270 sigma  ; Gaussian centered at 0°
       set course i
-      set emotional-capacity random 10
+      set extroversion random-normal extroversion-mean extroversion-distribution
+      set society calculate-society personality num-societies ; does not necessarily go to it's own society but will choose societies close to it
+      set emotional-capacity ( (random 10) * extroversion )
     ]
     set i (i + 1)
   ]
 
-  ask turtles [set happy? false]
+  ;ask turtles [set happy? false]
 
   reset-ticks
 end
@@ -119,21 +143,63 @@ end
 
 
 to go
-  let new-friends 0
-  let cross-friends 0
+  let total-new-friends 0
+  let total-cross-friends 0
 
   ask turtles [
-
+    let me self
+    ask other turtles [
+      make-friend me self
+    ]
   ]
 
   tick
 end
+
+to make-friend [a b]
+  if has-friend-capacity a and has-friend-capacity b [
+    if check-friendship-success a b [
+      ; we're friends now, nice
+      create-friendship a b
+    ]
+  ]
+
+end
+
+to create-friendship [a b]
+  ifelse [course] of a = [course] of b [
+    ; yay same course
+    ask a [
+      create-course-friendship-with b [set color [color] of a]
+    ]
+  ] [
+    ; yay different course
+    ask a [
+      create-cross-course-friendship-with b
+    ]
+  ]
+end
+
+to-report check-friendship-success [a b]
+  if member? b link-neighbors [
+    report false
+  ]
+  ;if [course] of a = [course] of b [
+  ;  report true
+  ;]
+  report false
+end
+
+to-report has-friend-capacity [a]
+  report [friends] of a <= [emotional-capacity] of a
+end
+
 @#$#@#$#@
 GRAPHICS-WINDOW
 415
 15
-26436
-26037
+1216
+817
 -1
 -1
 13.0
@@ -143,13 +209,13 @@ GRAPHICS-WINDOW
 1
 1
 0
+0
+0
 1
-1
-1
--1000
-1000
--1000
-1000
+-30
+30
+-30
+30
 0
 0
 1
@@ -182,7 +248,7 @@ hum-population
 hum-population
 0
 10000
-5212.0
+10.0
 1
 1
 NIL
@@ -197,7 +263,7 @@ hum-courses
 hum-courses
 0
 35
-17.0
+2.0
 1
 1
 NIL
@@ -212,7 +278,7 @@ stem-population
 stem-population
 0
 10000
-6909.0
+10.0
 1
 1
 NIL
@@ -227,7 +293,7 @@ stem-courses
 stem-courses
 0
 35
-26.0
+3.0
 1
 1
 NIL
@@ -242,7 +308,7 @@ med-population
 med-population
 0
 10000
-6000.0
+10.0
 1
 1
 NIL
@@ -257,7 +323,7 @@ med-courses
 med-courses
 0
 35
-10.0
+2.0
 1
 1
 NIL
@@ -272,7 +338,7 @@ bus-population
 bus-population
 0
 10000
-4909.0
+10.0
 1
 1
 NIL
@@ -287,17 +353,17 @@ bus-courses
 bus-courses
 0
 35
-8.0
+2.0
 1
 1
 NIL
 HORIZONTAL
 
 SLIDER
-9
-418
-42
-538
+15
+527
+48
+647
 sigma
 sigma
 0
@@ -309,10 +375,10 @@ NIL
 VERTICAL
 
 PLOT
-49
-418
-394
-538
+55
+527
+400
+647
 personality distribution
 NIL
 NIL
@@ -338,7 +404,7 @@ stem-course-density-distribution
 stem-course-density-distribution
 0
 100
-80.0
+2.0
 1
 1
 NIL
@@ -353,7 +419,7 @@ hum-course-density-distribution
 hum-course-density-distribution
 0
 100
-80.0
+2.0
 1
 1
 NIL
@@ -368,7 +434,7 @@ med-course-density-distribution
 med-course-density-distribution
 0
 100
-83.0
+3.0
 1
 1
 NIL
@@ -383,7 +449,98 @@ bus-course-density-distribution
 bus-course-density-distribution
 0
 100
-82.0
+3.0
+1
+1
+NIL
+HORIZONTAL
+
+SLIDER
+16
+660
+49
+855
+extroversion-mean
+extroversion-mean
+0
+1
+0.5
+0.001
+1
+NIL
+VERTICAL
+
+SLIDER
+55
+660
+88
+854
+extroversion-distribution
+extroversion-distribution
+0
+1
+0.1
+0.001
+1
+NIL
+VERTICAL
+
+PLOT
+97
+660
+400
+856
+extroversion distribution
+NIL
+NIL
+0.0
+10.0
+0.0
+10.0
+true
+false
+"set-plot-x-range 0 1\nset-histogram-num-bars 1000" ""
+PENS
+"default" 1.0 0 -16777216 true "" "histogram [extroversion] of turtles"
+
+MONITOR
+14
+474
+104
+519
+NIL
+count turtles
+0
+1
+11
+
+BUTTON
+150
+16
+213
+49
+NIL
+go
+NIL
+1
+T
+OBSERVER
+NIL
+NIL
+NIL
+NIL
+1
+
+SLIDER
+11
+408
+183
+441
+num-societies
+num-societies
+0
+100
+11.0
 1
 1
 NIL
