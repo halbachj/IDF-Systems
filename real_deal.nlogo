@@ -193,13 +193,12 @@ end
 to-report has-friend-capacity [a]
   report [friends] of a <= [emotional-capacity] of a
 end
-
 @#$#@#$#@
 GRAPHICS-WINDOW
-415
-15
-1216
-817
+1327
+10
+2128
+812
 -1
 -1
 13.0
@@ -240,10 +239,10 @@ NIL
 1
 
 SLIDER
-15
-55
-195
-88
+6
+280
+186
+313
 hum-population
 hum-population
 0
@@ -255,10 +254,10 @@ NIL
 HORIZONTAL
 
 SLIDER
-205
-55
-400
-88
+196
+280
+391
+313
 hum-courses
 hum-courses
 0
@@ -270,40 +269,40 @@ NIL
 HORIZONTAL
 
 SLIDER
-11
-142
-191
-175
+14
+61
+194
+94
 stem-population
 stem-population
 0
 10000
-10.0
+909.0
 1
 1
 NIL
 HORIZONTAL
 
 SLIDER
-201
-142
-396
-175
+204
+61
+399
+94
 stem-courses
 stem-courses
 0
-35
-3.0
+600
+300.0
 1
 1
 NIL
 HORIZONTAL
 
 SLIDER
-12
-231
-192
-264
+9
+530
+189
+563
 med-population
 med-population
 0
@@ -315,10 +314,10 @@ NIL
 HORIZONTAL
 
 SLIDER
-202
-231
-397
-264
+199
+530
+394
+563
 med-courses
 med-courses
 0
@@ -330,10 +329,10 @@ NIL
 HORIZONTAL
 
 SLIDER
-10
-320
-190
-353
+18
+750
+198
+783
 bus-population
 bus-population
 0
@@ -345,25 +344,25 @@ NIL
 HORIZONTAL
 
 SLIDER
+208
+750
+403
+783
+bus-courses
+bus-courses
+0
+35
+2.0
+1
+1
+NIL
+HORIZONTAL
+
+SLIDER
+929
+80
+962
 200
-320
-395
-353
-bus-courses
-bus-courses
-0
-35
-2.0
-1
-1
-NIL
-HORIZONTAL
-
-SLIDER
-15
-527
-48
-647
 sigma
 sigma
 0
@@ -375,10 +374,10 @@ NIL
 VERTICAL
 
 PLOT
-55
-527
-400
-647
+968
+81
+1313
+201
 personality distribution
 NIL
 NIL
@@ -390,76 +389,76 @@ true
 false
 "set-plot-x-range 0 360\nset-histogram-num-bars 360" ""
 PENS
-"default" 1.0 0 -13345367 true "" "histogram [personality] of stems"
-"pen-1" 1.0 0 -2674135 true "" "histogram [personality] of hums"
-"pen-2" 1.0 0 -10899396 true "" "histogram [personality] of meds"
-"pen-3" 1.0 0 -7500403 true "" "histogram [personality] of buss"
-
-SLIDER
-13
-182
-394
-215
-stem-course-density-distribution
-stem-course-density-distribution
-0
-100
-2.0
-1
-1
-NIL
-HORIZONTAL
-
-SLIDER
-14
-97
-397
-130
-hum-course-density-distribution
-hum-course-density-distribution
-0
-100
-2.0
-1
-1
-NIL
-HORIZONTAL
-
-SLIDER
-11
-270
-397
-303
-med-course-density-distribution
-med-course-density-distribution
-0
-100
-3.0
-1
-1
-NIL
-HORIZONTAL
-
-SLIDER
-11
-362
-394
-395
-bus-course-density-distribution
-bus-course-density-distribution
-0
-100
-3.0
-1
-1
-NIL
-HORIZONTAL
+"default" 1.0 1 -13345367 true "" "histogram [personality] of stems"
+"pen-1" 1.0 1 -2674135 true "" "histogram [personality] of hums"
+"pen-2" 1.0 1 -10899396 true "" "histogram [personality] of meds"
+"pen-3" 1.0 1 -7500403 true "" "histogram [personality] of buss"
 
 SLIDER
 16
-660
-49
-855
+101
+397
+134
+stem-course-density-distribution
+stem-course-density-distribution
+0
+1000
+495.0
+1
+1
+NIL
+HORIZONTAL
+
+SLIDER
+5
+322
+388
+355
+hum-course-density-distribution
+hum-course-density-distribution
+0
+100
+2.0
+1
+1
+NIL
+HORIZONTAL
+
+SLIDER
+8
+569
+394
+602
+med-course-density-distribution
+med-course-density-distribution
+0
+100
+3.0
+1
+1
+NIL
+HORIZONTAL
+
+SLIDER
+19
+792
+402
+825
+bus-course-density-distribution
+bus-course-density-distribution
+0
+100
+3.0
+1
+1
+NIL
+HORIZONTAL
+
+SLIDER
+930
+213
+963
+408
 extroversion-mean
 extroversion-mean
 0
@@ -471,10 +470,10 @@ NIL
 VERTICAL
 
 SLIDER
-55
-660
-88
-854
+968
+214
+1001
+408
 extroversion-distribution
 extroversion-distribution
 0
@@ -486,10 +485,10 @@ NIL
 VERTICAL
 
 PLOT
-97
-660
-400
-856
+1010
+214
+1313
+410
 extroversion distribution
 NIL
 NIL
@@ -499,15 +498,15 @@ NIL
 10.0
 true
 false
-"set-plot-x-range 0 1\nset-histogram-num-bars 1000" ""
+"set-plot-x-range 0 1\nset-histogram-num-bars 100" ""
 PENS
-"default" 1.0 0 -16777216 true "" "histogram [extroversion] of turtles"
+"default" 1.0 1 -16777216 true "" "histogram [extroversion] of turtles"
 
 MONITOR
-14
-474
-104
-519
+927
+28
+1017
+73
 NIL
 count turtles
 0
@@ -532,10 +531,10 @@ NIL
 1
 
 SLIDER
-11
-408
-183
-441
+1022
+30
+1194
+63
 num-societies
 num-societies
 0
@@ -545,6 +544,24 @@ num-societies
 1
 NIL
 HORIZONTAL
+
+PLOT
+434
+193
+634
+343
+plot 1
+NIL
+NIL
+0.0
+10.0
+0.0
+10.0
+true
+false
+"set-plot-x-range 0 stem-courses + 1\nset-histogram-num-bars stem-courses" ""
+PENS
+"default" 10.0 1 -16777216 true "" "let result n-values 0 [0]\nlet students-per-course n-values stem-courses [0]\n\nask stems [\n  set students-per-course replace-item course students-per-course ( (item course students-per-course) + 1 ) ; count how many students are in each course\n  set result lput course result ; add the course id to a list\n]\n\nlet i 0\nlet n (length result)\nrepeat n [\n  let course-id (item i result)\n  set result replace-item i result (item course-id students-per-course)\n  set i (i + 1)\n]\n\n\n;show result\nhistogram result"
 
 @#$#@#$#@
 ## WHAT IS IT?
