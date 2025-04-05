@@ -1,4 +1,4 @@
-globals [societies]
+globals [num-interest-per-student num-societies-per-student]
 
 breed [hums hum]
 breed [stems stem]
@@ -8,10 +8,40 @@ breed [buss bus]
 undirected-link-breed [course-friendships course-friendship]
 undirected-link-breed [cross-course-friendships cross-course-friendship]
 
-turtles-own [friends cross-friends personality course emotional-capacity extroversion society]
+links-own [accumulated-contact-hours]
 
-to-report calculate-society [ pers num ]
-  report ((( round ( pers * (num / 360) ) ) / num ) * 360 )
+turtles-own [friends cross-friends personality course contact-hours emotional-capacity extroversion interests societies]
+
+to-report calculate-society-difference [soc interest num]
+  report ((soc - interest + 540) mod 360) - 180
+end
+
+
+to-report choose-society [ interest num ]
+  report ((( round ( interest * (num / 360) ) ) / num ) * 360 )
+end
+
+to roll-interest [me interest]
+  let m random-float 1 ; roll dice
+  if m >= min-interest-roll [
+    ask me [
+      set interests lput interest interests
+      set num-interest-per-student (num-interest-per-student + 1)
+    ]
+    ; check if a society with similar interests exists
+    let soc choose-society interest num-societies
+    let soc-diff calculate-society-difference soc interest num-societies
+    if abs (soc-diff) < max-society-difference [
+      ask me [
+        set societies lput soc societies ; add the society to the list
+        set num-societies-per-student (num-societies-per-student + 1)
+      ]
+    ]
+  ]
+end
+
+to determine-interests [me]
+  foreach (range num-interests) [ x -> roll-interest me x]
 end
 
 to setup
@@ -40,10 +70,11 @@ to setup
   let y-center-course-region faculty-radius * sin stem-region
   let angular-distance 360 / stem-courses
   let i stem-course-offset
-  repeat stem-courses [ ;; WTF NO FOR LOOPS kms
+  repeat stem-courses [
     let course-density random-normal stem-population stem-course-density-distribution
     let x-center-agent-region ( ( course-radius * cos (angular-distance * i) ) + x-center-course-region )
     let y-center-agent-region ( ( course-radius * sin (angular-distance * i) ) + y-center-course-region )
+    let course-contact-hours round (random-normal stem-mean-contact-hours stem-contact-hour-distribution)
     create-stems course-density [
       set shape "circle"
       set color blue
@@ -53,9 +84,13 @@ to setup
       setxy x-coord y-coord
       set personality wrap-angle random-normal 0 sigma  ; Gaussian centered at 0°
       set course i
+      set contact-hours ifelse-value course-contact-hours < 0 [0] [course-contact-hours] ; ensure that it is at least an online course...
       set extroversion random-normal extroversion-mean extroversion-distribution
-      set society calculate-society personality num-societies ; does not necessarily go to it's own society but will choose societies close to it
       set emotional-capacity ( (random 10) * extroversion )
+      ; determine interests
+      set interests n-values 0 [0] ; create empty list
+      set societies n-values 0 [0] ; create empty list
+      determine-interests self ; chooses interests and societies
     ]
     set i (i + 1)
   ]
@@ -68,6 +103,7 @@ to setup
     let course-density random-normal hum-population hum-course-density-distribution
     let x-center-agent-region ( course-radius * cos (angular-distance * i) ) + x-center-course-region
     let y-center-agent-region ( course-radius * sin (angular-distance * i) ) + y-center-course-region
+    let course-contact-hours round (random-normal hum-mean-contact-hours hum-contact-hour-distribution)
     create-hums course-density [
       set shape "circle"
       set color red
@@ -77,9 +113,12 @@ to setup
       setxy x-coord y-coord
       set personality wrap-angle random-normal 90 sigma  ; Gaussian centered at 0°
       set course i
+      set contact-hours ifelse-value course-contact-hours < 0 [0] [course-contact-hours] ; ensure that it is at least an online course...
       set extroversion random-normal extroversion-mean extroversion-distribution
-      set society calculate-society personality num-societies ; does not necessarily go to it's own society but will choose societies close to it
       set emotional-capacity ( (random 10) * extroversion )
+      set interests n-values 0 [0] ; create empty list
+      set societies n-values 0 [0] ; create empty list
+      determine-interests self ; chooses interests and societies
     ]
     set i (i + 1)
   ]
@@ -92,6 +131,7 @@ to setup
     let course-density random-normal med-population med-course-density-distribution
     let x-center-agent-region ( course-radius * cos (angular-distance * i) ) + x-center-course-region
     let y-center-agent-region ( course-radius * sin (angular-distance * i) ) + y-center-course-region
+    let course-contact-hours round (random-normal med-mean-contact-hours med-contact-hour-distribution)
     create-meds course-density [
       set shape "circle"
       set color green
@@ -101,9 +141,12 @@ to setup
       setxy x-coord y-coord
       set personality wrap-angle random-normal 180 sigma  ; Gaussian centered at 0°
       set course i
+      set contact-hours ifelse-value course-contact-hours < 0 [0] [course-contact-hours] ; ensure that it is at least an online course...
       set extroversion random-normal extroversion-mean extroversion-distribution
-      set society calculate-society personality num-societies ; does not necessarily go to it's own society but will choose societies close to it
       set emotional-capacity ( (random 10) * extroversion )
+      set interests n-values 0 [0] ; create empty list
+      set societies n-values 0 [0] ; create empty list
+      determine-interests self ; chooses interests and societies
     ]
     set i (i + 1)
   ]
@@ -116,18 +159,22 @@ to setup
     let course-density random-normal bus-population bus-course-density-distribution
     let x-center-agent-region ( course-radius * cos (angular-distance * i) ) + x-center-course-region
     let y-center-agent-region ( course-radius * sin (angular-distance * i) ) + y-center-course-region
+    let course-contact-hours round (random-normal bus-mean-contact-hours bus-contact-hour-distribution)
     create-buss course-density [
       set shape "circle"
-      set color grey
+      set color yellow
       let angle (who * 360 / course-density)
       let x-coord agent-radius * cos angle + x-center-agent-region
       let y-coord agent-radius * sin angle + y-center-agent-region
       setxy x-coord y-coord
       set personality wrap-angle random-normal 270 sigma  ; Gaussian centered at 0°
       set course i
+      set contact-hours ifelse-value course-contact-hours < 0 [0] [course-contact-hours] ; ensure that it is at least an online course...
       set extroversion random-normal extroversion-mean extroversion-distribution
-      set society calculate-society personality num-societies ; does not necessarily go to it's own society but will choose societies close to it
       set emotional-capacity ( (random 10) * extroversion )
+      set interests n-values 0 [0] ; create empty list
+      set societies n-values 0 [0] ; create empty list
+      determine-interests self ; chooses interests and societies
     ]
     set i (i + 1)
   ]
@@ -184,21 +231,52 @@ to-report check-friendship-success [a b]
   if member? b link-neighbors [
     report false
   ]
-  ;if [course] of a = [course] of b [
-  ;  report true
-  ;]
+  let our-contact-hours 0
+  ifelse [breed] of a = [breed] of b [
+    ifelse [course] of a = [course] of b [
+      set our-contact-hours ([contact-hours] of a) + 2; use course contact hours and add 2
+    ] [ ; not in the same course
+      set our-contact-hours 2 ; set contact hours to just 2 if they are in the same faculty/school
+    ]
+  ] [ ; not of the same breed
+    set our-contact-hours 1 ; set contact hours to 1 if they are not in thery faculty/school
+  ]
+
+  foreach [societies] of a [ x ->
+    if member? x [societies] of b [
+      set our-contact-hours ( our-contact-hours + 2) ; if same societies add another 2 contact hours
+    ]
+  ]
+
+  let effective-contact-hours ((sqrt our-contact-hours) * ([extroversion] of a + [extroversion] of b))
+  let pers-diff compare-personality a b
+  if effective-contact-hours <= 0 [ ; you literally never seen them
+    report false
+  ]
+  let chance pers-diff / effective-contact-hours
+  let dice-roll random 3
+
+  if (chance < dice-roll) [
+    report true
+  ]
   report false
 end
 
 to-report has-friend-capacity [a]
   report [friends] of a <= [emotional-capacity] of a
 end
+
+to-report compare-personality [a b]
+  let raw-difference ([personality] of a - [personality] of b) mod 360
+  let difference ifelse-value (raw-difference > 180) [360 - raw-difference] [raw-difference]
+  report difference
+end
 @#$#@#$#@
 GRAPHICS-WINDOW
-1327
+1016
 10
-2128
-812
+2467
+1462
 -1
 -1
 13.0
@@ -211,10 +289,10 @@ GRAPHICS-WINDOW
 0
 0
 1
--30
-30
--30
-30
+-55
+55
+-55
+55
 0
 0
 1
@@ -222,9 +300,9 @@ ticks
 30.0
 
 BUTTON
+13
 15
-15
-80
+78
 50
 NIL
 setup
@@ -239,25 +317,25 @@ NIL
 1
 
 SLIDER
-6
-280
-186
-313
+16
+277
+196
+310
 hum-population
 hum-population
 0
-10000
-10.0
+300
+29.0
 1
 1
 NIL
 HORIZONTAL
 
 SLIDER
-196
-280
-391
-313
+206
+277
+401
+310
 hum-courses
 hum-courses
 0
@@ -276,8 +354,8 @@ SLIDER
 stem-population
 stem-population
 0
-10000
-909.0
+300
+40.0
 1
 1
 NIL
@@ -291,36 +369,6 @@ SLIDER
 stem-courses
 stem-courses
 0
-600
-300.0
-1
-1
-NIL
-HORIZONTAL
-
-SLIDER
-9
-530
-189
-563
-med-population
-med-population
-0
-10000
-10.0
-1
-1
-NIL
-HORIZONTAL
-
-SLIDER
-199
-530
-394
-563
-med-courses
-med-courses
-0
 35
 2.0
 1
@@ -329,40 +377,70 @@ NIL
 HORIZONTAL
 
 SLIDER
-18
-750
-198
-783
-bus-population
-bus-population
+16
+496
+196
+529
+med-population
+med-population
 0
-10000
-10.0
+300
+52.0
 1
 1
 NIL
 HORIZONTAL
 
 SLIDER
-208
-750
-403
-783
+206
+496
+401
+529
+med-courses
+med-courses
+0
+35
+3.0
+1
+1
+NIL
+HORIZONTAL
+
+SLIDER
+15
+709
+195
+742
+bus-population
+bus-population
+0
+300
+24.0
+1
+1
+NIL
+HORIZONTAL
+
+SLIDER
+205
+709
+400
+742
 bus-courses
 bus-courses
 0
 35
-2.0
+3.0
 1
 1
 NIL
 HORIZONTAL
 
 SLIDER
-929
-80
-962
-200
+662
+216
+695
+336
 sigma
 sigma
 0
@@ -374,10 +452,10 @@ NIL
 VERTICAL
 
 PLOT
-968
-81
-1313
-201
+701
+217
+1012
+337
 personality distribution
 NIL
 NIL
@@ -389,10 +467,10 @@ true
 false
 "set-plot-x-range 0 360\nset-histogram-num-bars 360" ""
 PENS
-"default" 1.0 1 -13345367 true "" "histogram [personality] of stems"
-"pen-1" 1.0 1 -2674135 true "" "histogram [personality] of hums"
-"pen-2" 1.0 1 -10899396 true "" "histogram [personality] of meds"
-"pen-3" 1.0 1 -7500403 true "" "histogram [personality] of buss"
+"default" 1.0 0 -13345367 true "" "histogram [personality] of stems"
+"pen-1" 1.0 0 -2674135 true "" "histogram [personality] of hums"
+"pen-2" 1.0 0 -10899396 true "" "histogram [personality] of meds"
+"pen-3" 1.0 0 -7500403 true "" "histogram [personality] of buss"
 
 SLIDER
 16
@@ -402,18 +480,18 @@ SLIDER
 stem-course-density-distribution
 stem-course-density-distribution
 0
-1000
-495.0
+100
+3.0
 1
 1
 NIL
 HORIZONTAL
 
 SLIDER
-5
-322
-388
-355
+15
+319
+398
+352
 hum-course-density-distribution
 hum-course-density-distribution
 0
@@ -425,25 +503,25 @@ NIL
 HORIZONTAL
 
 SLIDER
-8
-569
-394
-602
+15
+535
+401
+568
 med-course-density-distribution
 med-course-density-distribution
 0
 100
-3.0
+2.0
 1
 1
 NIL
 HORIZONTAL
 
 SLIDER
-19
-792
-402
-825
+16
+751
+399
+784
 bus-course-density-distribution
 bus-course-density-distribution
 0
@@ -455,10 +533,10 @@ NIL
 HORIZONTAL
 
 SLIDER
-930
-213
-963
-408
+663
+349
+696
+544
 extroversion-mean
 extroversion-mean
 0
@@ -470,10 +548,10 @@ NIL
 VERTICAL
 
 SLIDER
-968
-214
-1001
-408
+701
+350
+734
+544
 extroversion-distribution
 extroversion-distribution
 0
@@ -485,10 +563,10 @@ NIL
 VERTICAL
 
 PLOT
+743
+350
 1010
-214
-1313
-410
+546
 extroversion distribution
 NIL
 NIL
@@ -503,10 +581,10 @@ PENS
 "default" 1.0 1 -16777216 true "" "histogram [extroversion] of turtles"
 
 MONITOR
-927
-28
-1017
-73
+661
+62
+775
+107
 NIL
 count turtles
 0
@@ -531,26 +609,26 @@ NIL
 1
 
 SLIDER
-1022
-30
-1194
-63
+660
+112
+832
+145
 num-societies
 num-societies
 0
 100
-11.0
+6.0
 1
 1
 NIL
 HORIZONTAL
 
 PLOT
-434
-193
-634
-343
-plot 1
+16
+138
+320
+258
+stem-course-distribution
 NIL
 NIL
 0.0
@@ -559,9 +637,322 @@ NIL
 10.0
 true
 false
-"set-plot-x-range 0 stem-courses + 1\nset-histogram-num-bars stem-courses" ""
+"set-plot-x-range 0 stem-population * 2\nset-histogram-num-bars stem-population / 2" ""
 PENS
 "default" 10.0 1 -16777216 true "" "let result n-values 0 [0]\nlet students-per-course n-values stem-courses [0]\n\nask stems [\n  set students-per-course replace-item course students-per-course ( (item course students-per-course) + 1 ) ; count how many students are in each course\n  set result lput course result ; add the course id to a list\n]\n\nlet i 0\nlet n (length result)\nrepeat n [\n  let course-id (item i result)\n  set result replace-item i result (item course-id students-per-course)\n  set i (i + 1)\n]\n\n\n;show result\nhistogram result"
+
+SLIDER
+405
+61
+647
+94
+stem-mean-contact-hours
+stem-mean-contact-hours
+0
+80
+12.0
+1
+1
+NIL
+HORIZONTAL
+
+SLIDER
+404
+101
+647
+134
+stem-contact-hour-distribution
+stem-contact-hour-distribution
+0
+100
+3.0
+1
+1
+NIL
+HORIZONTAL
+
+PLOT
+323
+138
+649
+258
+stem-contact-hour-distribution
+NIL
+NIL
+0.0
+10.0
+0.0
+10.0
+true
+false
+"; these values are more or less arbritrary but work out\nset-plot-x-range 0 80\nset-histogram-num-bars (stem-courses)" ""
+PENS
+"default" 10.0 1 -16777216 true "" "let contact-hours-per-course n-values stem-courses [0]\n\nlet i 0\nrepeat stem-courses [\n  let course-hours-list [contact-hours] of stems with [course = i]\n  if not empty? course-hours-list [\n    let hours one-of course-hours-list\n    set contact-hours-per-course replace-item i contact-hours-per-course hours\n  ]\n  set i (i + 1)\n]\n\n;show result\nhistogram contact-hours-per-course"
+
+PLOT
+16
+355
+320
+475
+hum-course-distribution
+NIL
+NIL
+0.0
+10.0
+0.0
+10.0
+true
+false
+"set-plot-x-range 0 hum-population * 2\nset-histogram-num-bars hum-population / 2" ""
+PENS
+"default" 10.0 1 -16777216 true "" "let result n-values 0 [0]\nlet students-per-course n-values hum-courses [0]\n\nask hums [\n  let id (course - stem-courses)\n  set students-per-course replace-item id students-per-course ( (item id students-per-course) + 1 ) ; count how many students are in each course\n  set result lput id result ; add the course id to a list\n]\n\nlet i 0\nlet n (length result)\nrepeat n [\n  let course-id (item i result)\n  set result replace-item i result (item course-id students-per-course)\n  set i (i + 1)\n]\n\n\n;show result\nhistogram result"
+
+PLOT
+325
+356
+646
+476
+hum-contact-hour-distribution
+NIL
+NIL
+0.0
+10.0
+0.0
+10.0
+true
+false
+"; these values are more or less arbritrary but work out\nset-plot-x-range 0 80\nset-histogram-num-bars (hum-courses)" ""
+PENS
+"default" 10.0 1 -16777216 true "" "let contact-hours-per-course n-values hum-courses [0]\n\nlet i 0\nrepeat hum-courses [\n  let id (i + stem-courses)\n  let course-hours-list [contact-hours] of hums with [course = id]\n  if not empty? course-hours-list [\n    let hours one-of course-hours-list\n    set contact-hours-per-course replace-item i contact-hours-per-course hours\n  ]\n  set i (i + 1)\n]\n\n;show result\nhistogram contact-hours-per-course"
+
+SLIDER
+407
+278
+645
+311
+hum-mean-contact-hours
+hum-mean-contact-hours
+0
+100
+6.0
+1
+1
+NIL
+HORIZONTAL
+
+SLIDER
+405
+318
+645
+351
+hum-contact-hour-distribution
+hum-contact-hour-distribution
+0
+100
+3.0
+1
+1
+NIL
+HORIZONTAL
+
+PLOT
+15
+572
+314
+692
+med-course-distribution
+NIL
+NIL
+0.0
+10.0
+0.0
+10.0
+true
+false
+"set-plot-x-range 0 med-population * 2\nset-histogram-num-bars med-population / 2" ""
+PENS
+"default" 10.0 1 -16777216 true "" "let result n-values 0 [0]\nlet students-per-course n-values med-courses [0]\n\nask meds [\n  let id (course - (stem-courses + hum-courses))\n  set students-per-course replace-item id students-per-course ( (item id students-per-course) + 1 ) ; count how many students are in each course\n  set result lput id result ; add the course id to a list\n]\n\nlet i 0\nlet n (length result)\nrepeat n [\n  let course-id (item i result)\n  set result replace-item i result (item course-id students-per-course)\n  set i (i + 1)\n]\n\n\n;show result\nhistogram result"
+
+PLOT
+319
+573
+642
+693
+med-contact-hour-distribution
+NIL
+NIL
+0.0
+10.0
+0.0
+10.0
+true
+false
+"; these values are more or less arbritrary but work out\nset-plot-x-range 0 80\nset-histogram-num-bars (med-courses)" ""
+PENS
+"default" 10.0 1 -16777216 true "" "let contact-hours-per-course n-values med-courses [0]\n\nlet i 0\nrepeat med-courses [\n  let id (i + stem-courses + hum-courses)\n  let course-hours-list [contact-hours] of meds with [course = id]\n  if not empty? course-hours-list [\n    let hours one-of course-hours-list\n    set contact-hours-per-course replace-item i contact-hours-per-course hours\n  ]\n  set i (i + 1)\n]\n\n;show result\nhistogram contact-hours-per-course"
+
+SLIDER
+406
+495
+644
+528
+med-mean-contact-hours
+med-mean-contact-hours
+0
+100
+18.0
+1
+1
+NIL
+HORIZONTAL
+
+SLIDER
+406
+534
+644
+567
+med-contact-hour-distribution
+med-contact-hour-distribution
+0
+100
+5.0
+1
+1
+NIL
+HORIZONTAL
+
+SLIDER
+406
+709
+643
+742
+bus-mean-contact-hours
+bus-mean-contact-hours
+0
+100
+5.0
+1
+1
+NIL
+HORIZONTAL
+
+SLIDER
+406
+752
+643
+785
+bus-contact-hour-distribution
+bus-contact-hour-distribution
+0
+100
+4.0
+1
+1
+NIL
+HORIZONTAL
+
+PLOT
+16
+789
+307
+939
+bus-course-distribution
+NIL
+NIL
+0.0
+10.0
+0.0
+10.0
+true
+false
+"set-plot-x-range 0 bus-population * 2\nset-histogram-num-bars bus-population / 2" ""
+PENS
+"default" 10.0 1 -16777216 true "" "let result n-values 0 [0]\nlet students-per-course n-values bus-courses [0]\n\nask buss [\n  let id (course - (stem-courses + hum-courses + med-courses))\n  set students-per-course replace-item id students-per-course ( (item id students-per-course) + 1 ) ; count how many students are in each course\n  set result lput id result ; add the course id to a list\n]\n\nlet i 0\nlet n (length result)\nrepeat n [\n  let course-id (item i result)\n  show course-id\n  show i\n  set result replace-item i result (item course-id students-per-course)\n  set i (i + 1)\n]\n\n\n;show result\nhistogram result"
+
+PLOT
+311
+790
+643
+940
+bus-contact-hour-distribution
+NIL
+NIL
+0.0
+10.0
+0.0
+10.0
+true
+false
+"; these values are more or less arbritrary but work out\nset-plot-x-range 0 80\nset-histogram-num-bars (bus-courses)" ""
+PENS
+"default" 10.0 1 -16777216 true "" "let contact-hours-per-course n-values bus-courses [0]\n\nlet i 0\nrepeat bus-courses [\n  let id (i + stem-courses + hum-courses + med-courses)\n  let course-hours-list [contact-hours] of buss with [course = id]\n  if not empty? course-hours-list [\n    let hours one-of course-hours-list\n    set contact-hours-per-course replace-item i contact-hours-per-course hours\n  ]\n  set i (i + 1)\n]\n\n;show result\nhistogram contact-hours-per-course"
+
+SLIDER
+837
+112
+1009
+145
+num-interests
+num-interests
+0
+100
+8.0
+1
+1
+NIL
+HORIZONTAL
+
+SLIDER
+660
+156
+833
+189
+min-interest-roll
+min-interest-roll
+0
+1
+0.6
+0.01
+1
+NIL
+HORIZONTAL
+
+SLIDER
+837
+156
+1010
+189
+max-society-difference
+max-society-difference
+0
+15
+3.1
+0.1
+1
+NIL
+HORIZONTAL
+
+MONITOR
+778
+62
+889
+107
+NIL
+num-interest-per-student / (count turtles)
+2
+1
+11
+
+MONITOR
+892
+63
+1009
+108
+NIL
+num-societies-per-student / (count turtles)
+2
+1
+11
 
 @#$#@#$#@
 ## WHAT IS IT?
