@@ -1,0 +1,313 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html lang="en">
+<head>
+	<title> new document </title>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+	<meta name="author" content="" />
+	<meta name="keywords" content="" />
+	<meta name="description" content="" />
+	<style>
+		body,td,p,input,textarea{font:10pt Verdana}
+	</style>
+</head>
+
+<body>
+<div style="float:left;width:1010px;height:660px">
+	<svg width="960" height="650" xmlns="http://www.w3.org/2000/svg" style="border:1px solid #666">
+	</svg>
+</div>
+<div style="background:#ddd;width:300px;height:660px;float:left">
+	<input type="button" value="Check" onclick="checkFriendships()" />
+	<input type="button" value="Dots" onclick="drawSchools()" />
+	<input type="button" value="Clear" onclick="clearAll()" />
+	<input type="button" value="Hide Friends" onclick="swapLines()" id="showFriendsButton" />
+	<br>
+	<TEXTAREA ID="messages" ROWS="10" COLS="26"></TEXTAREA>
+	<div id="sliders">
+		<input type="checkbox" id="FriendDeath" checked> Allow Friendship Death<br>
+		<input type="text" id="sider_HUM_0"><br>
+		
+	</div>
+</div>
+
+<script>
+schools = []; //Overarching faculty of the courses
+schools['HUM'] = [{"name":"History","places":16,"hours":8,"cx":100,"cy":300,"students":[]},{"name":"English","places":28,"hours":6,"cx":300,"cy":100,"students":[]},{"name":"Geography","places":20,"hours":6,"cx":100,"cy":100,"students":[]}];
+schools['STEM'] = [{"name":"Botany","places":24,"hours":10,"cx":500,"cy":100,"students":[]},{"name":"EarthSciences","places":19,"hours":8,"cx":700,"cy":300,"students":[]},{"name":"Physics","places":26,"hours":12,"cx":700,"cy":100,"students":[]}];
+schools['MED'] = [{"name":"Dentistry","places":32,"hours":32,"cx":100,"cy":500,"students":[]},{"name":"Nursing","places":26,"hours":34,"cx":300,"cy":500,"students":[]},{"name":"BioMed","places":30,"hours":30,"cx":300,"cy":300,"students":[]}];
+schools['BUS'] = [{"name":"Management","places":18,"hours":8,"cx":500,"cy":500,"students":[]},{"name":"Accounting","places":25,"hours":10,"cx":700,"cy":500,"students":[]},{"name":"Economics","places":21,"hours":9,"cx":500,"cy":300,"students":[]}];
+
+intensity = []; //Contact time multipliers for different types of society activity
+intensity['passive'] = 0.25;
+intensity['sociable'] = 0.75;
+intensity['interactive'] = 1.0;
+
+interests = ['Debating','Politics','Earth Sciences','Gaming','Rugby','LGBT','Geography']; //Possible student interests, not currently in use
+societies = []; //Not currently in use
+societies['Phil'] = {"color":"#669900","cy":100,"cx":500,"regular":{"hours":1,"type":"passive","activity":["Debating","Politics"]}};
+societies['Joly'] = {"color":"#FF6600","cy":100,"cx":600,"regular":{"hours":1,"type":"passive","activity":["Earth Sciences","Geography"]}};
+societies['Gamers'] = {"color":"#9999CC","cy":100,"cx":700,"regular":{"hours":2.5,"type":"interactive","activity":["Gaming"]}};
+societies['Rugby'] = {"color":"#CC9999","cy":100,"cx":800,"regular":{"hours":4,"type":"interactive","activity":["Rugby"]}};
+societies['LGBT'] = {"color":"#FF99FF","cy":100,"cx":900,"regular":{"hours":2,"type":"sociable","activity":["LGBT"]}};
+
+colours = []; //Colour of each school when displayed
+colours['HUM'] = '#ff0000';
+colours['STEM'] = '#66CC00';
+colours['MED'] = '#3333FF';
+colours['BUS'] = '#cccc00';
+colours["HUM-HUM"] = "#ff0000";
+colours["STEM-STEM"] = "#66CC00";
+colours["MED-MED"] = "#3333FF";
+colours["BUS-BUS"] = "#cccc00";
+
+students = []; //Array to hold student objects
+
+friendships = []; //Array to hold friendships between students
+
+totalContactHours = []; //Accumulated contact hours between pairs of students
+
+tick = 0;
+
+
+function bellCurve(){
+	a = Math.random();
+	b = Math.random();
+	c = Math.random();
+	z = (a + b + c) / 3;
+	return z;
+}
+function clearAll(){
+	var svg = document.getElementsByTagName('svg')[0]; //Get svg element
+	svg.innerHTML = ''; //Empty the svg
+	students = []; //Clear the array of students
+	friendships = []; //Clear the array of friendships
+	totalContactHours = [];
+	document.getElementById('messages').innerHTML = '';
+	tick = 0;
+}
+shown_lines = 'friendship';
+hidden_lines = 'membership';
+
+function swapLines(){ //Turns on and off the in course friendship lines
+	const shown = document.getElementsByClassName(shown_lines);
+	const hidden = document.getElementsByClassName(hidden_lines);
+	for(let i=0;i<shown.length;i++){
+		shown[i].style.display = 'none';
+	}
+	for(let i=0;i<hidden.length;i++){
+		hidden[i].style.display = '';
+	}
+	tmp = shown_lines;
+	shown_lines = hidden_lines;
+	hidden_lines = tmp;
+}
+
+//Draws lines
+function drawLine(xa,ya,xb,yb,colour,line_class,line_id){
+	var svg = document.getElementsByTagName('svg')[0]; //Get svg element
+	var newElement = document.createElementNS("http://www.w3.org/2000/svg", 'path'); //Create a path in SVG's namespace
+	newElement.setAttribute("d","M "+xa+" "+ya+" L "+xb+" "+yb+""); //Set path's data -> + sign joins strings and variables
+	newElement.style.stroke = colour; //Set stroke colour
+	newElement.style.strokeWidth = "1px"; //Set stroke width
+	newElement.style.position = "relative"; //Set stroke width
+	newElement.style.zIndex = 1; //Set stroke width
+	newElement.classList = line_class; //Set stroke width
+	newElement.id = line_id; //Set stroke width
+	svg.appendChild(newElement);
+}
+//Gets the student details
+function studentDetails(num){
+	student = students[num];
+	alert("Clicked "+JSON.stringify(student));
+}
+function addStudent(x,y,color,school,course){
+	var svg = document.getElementsByTagName('svg')[0]; //Get svg element
+	var newElement = document.createElementNS("http://www.w3.org/2000/svg", 'circle'); //Create a path in SVG's namespace
+	var personality = Math.floor(Math.random() * 360);
+	var extra = bellCurve();
+	var studentInterests = [{
+		"interest": schools[school][course].name,
+		"str": 0.95
+	}]; //Assume student is interested in their course (!)
+
+	let m;
+	for (let i = 0; i < interests.length; i++) {
+		m = Math.random();
+		if (interests[i] !== schools[school][course].name) {
+			studentInterests.push({"interest": interests[i], "str": m});
+		}
+	}
+	var studentNum = students.length;
+	var student = {
+		"personality": personality,
+		"extra": extra,
+		"emoCap": Math.round(extra * 10),
+		"friends": 0,
+		"school": school,
+		"course": course,
+		"cx":x,
+		"cy":y,
+		"studentNum":studentNum,
+		"studentInterests": studentInterests
+	};
+	students.push(student);
+	//console.log(student);
+	newElement.setAttribute("r",2 + (6 * extra)); //Set circle radius proportional to extraversion
+	newElement.setAttribute("cx",x); //Set circle radius
+	newElement.setAttribute("cy",y); //Set circle radius
+	newElement.setAttribute("id","student_" + studentNum); //Set circle radius
+	newElement.style.fill = color; //Set stroke colour
+	newElement.setAttribute("onclick","studentDetails("+studentNum+")");
+	newElement.style.position = "relative"; //Set stroke width
+	newElement.style.zIndex = 1000; //Set stroke width
+	svg.appendChild(newElement);
+}
+function drawSociety(x,y,color,name){
+	var svg = document.getElementsByTagName('svg')[0]; //Get svg element
+	var newElement = document.createElementNS("http://www.w3.org/2000/svg", 'circle'); //Create a path in SVG's namespace
+	newElement.setAttribute("r",30); //Set circle radius
+	newElement.setAttribute("cx",x); //Set circle radius
+	newElement.setAttribute("cy",y); //Set circle radius
+	newElement.style.fill = color; //Set stroke colour
+	newElement.setAttribute("onclick","societyDetails("+name+")");
+	newElement.style.position = "relative"; //Set stroke width
+	newElement.style.zIndex = 1000; //Set stroke width
+	svg.appendChild(newElement);
+	//*text
+	var newTextElement = document.createElementNS("http://www.w3.org/2000/svg", 'text'); //Create a text in SVG's namespace
+	var textContent = document.createTextNode(name);
+	newTextElement.appendChild(textContent);
+	newTextElement.setAttribute("x",x-15); //Set circle radius
+	newTextElement.setAttribute("y",(y - 40)); //Set circle radius
+	newTextElement.style.position = "relative"; //Set stroke width
+	newTextElement.style.fill = 'black'; //Set stroke colour
+	svg.appendChild(newTextElement);
+}
+
+function drawDots(cx, cy, r, dots, color, school, course){
+	let center = {x: cx, y: cy}
+	let radius = r;
+	let amountOfDots = dots;
+	for (let i = 0; i < amountOfDots; i++) {
+		let x = radius * Math.sin(Math.PI * 2 * i / amountOfDots) + center.x;
+		let y = radius * Math.cos(Math.PI * 2 * i / amountOfDots) + center.y;
+		//Draw my dot in (x, y) or whatever
+		addStudent(x,y,color,school,course);
+	}
+}
+function drawSchools(){
+	for(key in schools){
+		course = schools[key];
+		for(i=0;i<course.length;i++){
+			 drawDots(course[i].cx, course[i].cy, 75, course[i].places, colours[key], key, i); //Drawing dots in a circle
+		}
+	}
+	for(key in societies){
+		society = societies[key];
+		//Commented out, not in use - drawSociety(society.cx,society.cy,society.color,key);
+	}
+}
+function makeFriend(studentA, studentB, a, b){
+	if(friendships[studentA.studentNum + "-" + studentB.studentNum] || friendships[studentB.studentNum + "-" + studentA.studentNum]){
+		return false;
+	}
+	//Could be added - effect of mutual friends? societies in common?
+	var persA = studentA.personality;
+	var persB = studentB.personality;
+	var extraA = studentA.extra;
+	var extraB = studentB.extra;
+	if(studentA.school == studentB.school){
+		if(studentA.course == studentB.course){
+			contactHours = schools[studentA.school][studentA.course].hours + 2; //When share school and course
+		}
+		else{ //Simple place holders for societies and sports clubs
+			contactHours = 2; //When share school but not course 
+		}
+	}
+	else{
+		contactHours = 1; //When share neither school nor course
+	}
+	var effectiveContactHours = Math.pow(contactHours,0.5) * (extraA + extraB); //So the effect of contact hours diminishes
+	pairKey = a + "-" + b;
+	if(!totalContactHours[pairKey]){totalContactHours[pairKey] = effectiveContactHours;}
+	else{totalContactHours[pairKey] += effectiveContactHours;}
+	var diff = 360 - Math.abs(persA - persB);
+	var diff2 = Math.abs(persA - persB);
+	diff = diff / totalContactHours[pairKey];
+	var q = Math.random() * 5; //Roll against personality difference for friendship - simple to become more complex
+	//Console.log(persA + "\t" + persB + "\t" + diff + "\t" + diff2);
+
+	if(diff < q){
+		return true;
+	}
+	else{
+		return false;
+	}
+}
+function checkFriendships(){
+	var new_friends = 0; //Number of new friendsships made this tick
+	var new_cross_friends = 0; //Number of new cross-course friendships made this tick
+	tick++;
+	for(a=0;a<students.length;a++){
+		for(b=0;b<students.length;b++){
+			//If the students have available capacity for new friends
+			if(a != b && students[a].friends<=students[a].emoCap && students[b].friends<=students[b].emoCap){
+				var isFriend = makeFriend(students[a],students[b], a, b); //Pass student objects and their students array index 
+				if(isFriend){
+					colour = "#666";
+					fset = '';
+					if(students[a].school == students[b].school && students[a].course == students[b].course){
+						fset = 'friendship';
+					}
+					else if(students[a].school == students[b].school){
+						fset = 'school-friendship';
+					}
+					else{
+						fset = 'out-friendship';
+					}
+					var fid = "fr_" + students[a].studentNum + "_" + students[b].studentNum; //Unique friendship line id
+					new_friends++;
+					if(students[a].school != students[b].school || students[a].course != students[b].course){new_cross_friends++;}
+					students[a].friends++;
+					students[b].friends++;
+					friendships[students[a].studentNum + "-" + students[b].studentNum] = {"id":fid,"formed":tick,"type":fset};
+
+					if(colours[students[a].school + "-" + students[b].school]){colour = colours[students[a].school + "-" + students[b].school];}
+					drawLine(students[a].cx,students[a].cy,students[b].cx,students[b].cy,colour,fset,fid); 
+				}
+			}
+		}
+	}
+	var broken = 0; 
+	fd = document.getElementById('FriendDeath'); //Friendship death can be turned on and off as it makes a big difference
+	if(fd.checked){
+		var tmp_friendships = [];
+		for(key in friendships){
+			//Console.log(friendships[key]);
+			//Equal chance of breaking any friendship? or depends on length of friendship?
+			var d = Math.random();
+			var fr_len = tick - friendships[key].formed; //Length of friendship
+			var fr_mod = (fr_len * 0.001); //Modifier for length of friendship
+			d = d - fr_mod;
+			if(d > 0.95){
+				console.log("Breaking friendship " + key + " with " + d);
+				ids = key.split("-"); //Split to get the two student ids
+				students[ids[0]].friends--; //Deincrement student number of friends
+				students[ids[1]].friends--;
+				el = document.getElementById(friendships[key].id);
+				el.remove();
+				friendships[key] = null;
+				broken++;
+			}
+			else{
+				tmp_friendships[key] = friendships[key];
+			}
+		}
+		friendships = tmp_friendships;
+	}
+	el = document.getElementById('messages');
+	el.innerHTML = tick + "\t" + new_friends + "\t" + new_cross_friends + "\t" + broken + "\n" + el.innerHTML;
+}
+</script> 
+</body>
+</html>

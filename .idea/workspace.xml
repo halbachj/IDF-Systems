@@ -1,0 +1,208 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="SELECTIVE" />
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="815ab560-ca7c-419c-9bba-20106cede66b" name="Changes" comment="feat: NetLogo csv reformater&#10;&#10;Changed the parsing of the csv file.&#10;It is more accurate now. We read all the tables and have support for as many plots and graphs as we want.">
+      <change beforePath="$PROJECT_DIR$/csv_formatter/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/csv_formatter/main.py" afterDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="Git.Settings">
+    <favorite-branches>
+      <branch-storage>
+        <map>
+          <entry type="REMOTE">
+            <value>
+              <list>
+                <branch-info repo="$PROJECT_DIR$" source="origin/feat/csv-formatter" />
+              </list>
+            </value>
+          </entry>
+        </map>
+      </branch-storage>
+    </favorite-branches>
+    <option name="RECENT_BRANCH_BY_REPOSITORY">
+      <map>
+        <entry key="$PROJECT_DIR$" value="main" />
+      </map>
+    </option>
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="GitHubPullRequestSearchHistory">{
+  &quot;lastFilter&quot;: {
+    &quot;state&quot;: &quot;OPEN&quot;,
+    &quot;assignee&quot;: &quot;halbachj&quot;
+  }
+}</component>
+  <component name="GithubPullRequestsUISettings">{
+  &quot;selectedUrlAndAccountId&quot;: {
+    &quot;url&quot;: &quot;https://github.com/halbachj/IDF-Systems&quot;,
+    &quot;accountId&quot;: &quot;0c559a1b-432a-4b24-b5f5-958245cb26bc&quot;
+  }
+}</component>
+  <component name="HighlightingSettingsPerFile">
+    <setting file="file://$PROJECT_DIR$/csv_formatter/main.py" root0="FORCE_HIGHLIGHTING" />
+  </component>
+  <component name="ProjectColorInfo">{
+  &quot;associatedIndex&quot;: 8
+}</component>
+  <component name="ProjectId" id="2uamoIyt3viTWpwWNPEkz1x4kL4" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "Python.main.executor": "Run",
+    "Python.new.executor": "Run",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.git.unshallow": "true",
+    "database.data.extractors.current.export.id": "Comma-separated (CSV)_id",
+    "database.data.extractors.current.id": "Comma-separated (CSV)_id",
+    "git-widget-placeholder": "feat/csv-formatter",
+    "last_opened_file_path": "/home/twostone/Documents/Schule/Uni/Engineering/Systems/IDF-Systems/csv_formatter",
+    "node.js.detected.package.eslint": "true",
+    "node.js.detected.package.tslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "node.js.selected.package.tslint": "(autodetect)",
+    "nodejs_package_manager_path": "npm",
+    "settings.editor.selected.configurable": "preferences.keymap",
+    "vue.rearranger.settings.migration": "true"
+  }
+}]]></component>
+  <component name="RecentsManager">
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/csv_formatter" />
+    </key>
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/csv_formatter/input" />
+    </key>
+  </component>
+  <component name="RunManager">
+    <configuration name="main" type="PythonConfigurationType" factoryName="Python">
+      <module name="IDF-Systems" />
+      <option name="ENV_FILES" value="" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="SDK_NAME" value="Python 3.13 virtualenv at ~/Documents/Schule/Uni/Engineering/Systems/IDF-Systems/csv_formatter/.venv/lenv" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/csv_formatter" />
+      <option name="IS_MODULE_SDK" value="false" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/csv_formatter/main.py" />
+      <option name="PARAMETERS" value="./friends_example.csv ./output/" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
+  </component>
+  <component name="SharedIndexes">
+    <attachedChunks>
+      <set>
+        <option value="bundled-js-predefined-d6986cc7102b-deb605915726-JavaScript-PY-243.22562.220" />
+        <option value="bundled-python-sdk-0fc6c617c4bd-9a18a617cbe4-com.jetbrains.pycharm.pro.sharedIndexes.bundled-PY-243.22562.220" />
+      </set>
+    </attachedChunks>
+  </component>
+  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="815ab560-ca7c-419c-9bba-20106cede66b" name="Changes" comment="" />
+      <created>1742495233411</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1742495233411</updated>
+      <workItem from="1742495235069" duration="6655000" />
+      <workItem from="1742502095628" duration="864000" />
+      <workItem from="1742548839241" duration="203000" />
+      <workItem from="1742893475384" duration="13727000" />
+      <workItem from="1742982044839" duration="618000" />
+    </task>
+    <task id="LOCAL-00001" summary="feat: NetLogo csv reformater&#10;&#10;Wrote the NetLogo csv reformater. Reformats the csv plot into useful data. Added README.md as explanation.">
+      <option name="closed" value="true" />
+      <created>1742502992789</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1742502992789</updated>
+    </task>
+    <task id="LOCAL-00002" summary="feat: NetLogo csv reformater&#10;&#10;Changed the parsing of the csv file.&#10;It is more accurate now. We read all the tables and have support for as many plots and graphs as we want.">
+      <option name="closed" value="true" />
+      <created>1742941882195</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1742941882195</updated>
+    </task>
+    <task id="LOCAL-00003" summary="feat: NetLogo csv reformater&#10;&#10;Changed the parsing of the csv file.&#10;It is more accurate now. We read all the tables and have support for as many plots and graphs as we want.">
+      <option name="closed" value="true" />
+      <created>1742941974459</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1742941974459</updated>
+    </task>
+    <task id="LOCAL-00004" summary="feat: NetLogo csv reformater&#10;&#10;Changed the parsing of the csv file.&#10;It is more accurate now. We read all the tables and have support for as many plots and graphs as we want.">
+      <option name="closed" value="true" />
+      <created>1742942241013</created>
+      <option name="number" value="00004" />
+      <option name="presentableId" value="LOCAL-00004" />
+      <option name="project" value="LOCAL" />
+      <updated>1742942241013</updated>
+    </task>
+    <task id="LOCAL-00005" summary="feat: NetLogo csv reformater&#10;&#10;Changed the parsing of the csv file.&#10;It is more accurate now. We read all the tables and have support for as many plots and graphs as we want.">
+      <option name="closed" value="true" />
+      <created>1742942244990</created>
+      <option name="number" value="00005" />
+      <option name="presentableId" value="LOCAL-00005" />
+      <option name="project" value="LOCAL" />
+      <updated>1742942244990</updated>
+    </task>
+    <task id="LOCAL-00006" summary="feat: NetLogo csv reformater&#10;&#10;Changed the parsing of the csv file.&#10;It is more accurate now. We read all the tables and have support for as many plots and graphs as we want.">
+      <option name="closed" value="true" />
+      <created>1742942250990</created>
+      <option name="number" value="00006" />
+      <option name="presentableId" value="LOCAL-00006" />
+      <option name="project" value="LOCAL" />
+      <updated>1742942250990</updated>
+    </task>
+    <option name="localTasksCounter" value="7" />
+    <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="3" />
+  </component>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State />
+          </value>
+        </entry>
+      </map>
+    </option>
+  </component>
+  <component name="VcsManagerConfiguration">
+    <MESSAGE value="feat: NetLogo csv reformater&#10;&#10;Wrote the NetLogo csv reformater. Reformats the csv plot into useful data. Added README.md as explanation." />
+    <MESSAGE value="feat: NetLogo csv reformater&#10;&#10;Changed the parsing of the csv file.&#10;It is more accurate now. We read all the tables and have support for as many plots and graphs as we want." />
+    <option name="LAST_COMMIT_MESSAGE" value="feat: NetLogo csv reformater&#10;&#10;Changed the parsing of the csv file.&#10;It is more accurate now. We read all the tables and have support for as many plots and graphs as we want." />
+  </component>
+  <component name="com.intellij.coverage.CoverageDataManagerImpl">
+    <SUITE FILE_PATH="coverage/IDF_Systems$main.coverage" NAME="main Coverage Results" MODIFIED="1742982459490" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/csv_formatter" />
+    <SUITE FILE_PATH="coverage/IDF_Systems$new.coverage" NAME="new Coverage Results" MODIFIED="1742941462159" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/csv_formatter" />
+  </component>
+</project>

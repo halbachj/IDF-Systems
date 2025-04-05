@@ -13,30 +13,38 @@ breed [stems stem]
 breed [hums hum]
 breed [healths health]
 
-turtles-own [stem-friends hum-friends health-friends happy? personality]
+; distribute personalities as a bell curve. Different branches have different mean between 0 and 360. That means that ther will be overlap between the different curves
 
+turtles-own [happy? personality course]
 
 to setup
   clear-all
+  let sigma personality-sigma
   create-stems stem-population [
     set shape "person"
     setxy random-xcor random-ycor
     set color blue
-    ]
+    set personality wrap-angle random-normal 0 sigma  ; Gaussian centered at 0°
+    set course random 10 ; STEM has courses 0-9
+  ]
+
   create-hums hums-population [
     set shape "person"
     setxy random-xcor random-ycor
     set color red
+    set personality wrap-angle random-normal 120 sigma  ; Gaussian centered at 120°
+    set course random 10 + 10 ; Humanities has courses 10-19
   ]
 
   create-healths healths-population [
     set shape "person"
     setxy random-xcor random-ycor
     set color green
+    set personality wrap-angle random-normal 240 sigma  ; Gaussian centered at 240°
+    set course random 10 + 20 ; Health has courses 20-29
   ]
 
-  ask turtles [set happy? 0]
-  ask turtles [set personality random 360]
+  ask turtles [set happy? false]
 
   reset-ticks
 end
@@ -44,35 +52,68 @@ end
 to go
   tick
   ask turtles [
-    find-friends
-    if happy? != 1 [
-      right random 90
-      forward 5
+    make-friends
+    ; check if time for meeting if not clear meeting spots
+
+    if (time mod 50 = 0) and (time-active = 0) [
+      ; determine meeting spots
+      set time-active 50  ; Set the flag to be true for 50 steps
     ]
+
+    if (time-active > 0) [
+      set time-active time-active - 1
+      if (time-active = 0) [
+        set flag false  ; Reset flag after time-active reaches 0
+      ]
+    ]
+      ; assign meeting spots to courses
+    ]
+    ; if not time for meeting clear meeting spots
+
+    ; ask the turtles if they have meeting spot
+    ; if meeting spot then move towards meeting spot
+    ; if no meeting spot move randomly
+
+    ;if not happy? [
+    ;  right random 360
+    ;  forward 5
+    ;]
   ]
 end
 
 to export_plot1
-  export-plot "plot_1" "" ;add filehandle here;
+  export-plot "plot_1" file-handle ;add filehandle here;
 end
 
-to-report compare-personality
-  let my-personality [ personality ] of myself
-  let raw-difference (my-personality - personality) mod 360
-  let difference ifelse-value (raw-difference > 180) [ 360 - raw-difference ] [ raw-difference ]
-  report difference <= personality-similarity
+to-report compare-personality [candidate]
+  let raw-difference (personality - [personality] of candidate) mod 360
+  let difference ifelse-value (raw-difference > 180) [360 - raw-difference] [raw-difference]
+  report 1 / difference
 end
 
-to find-friends
-  set similar-nearby count (turtles-on neighbors)  with [ breed = [ breed ] of myself ]
-  set personality-nearby count (turtles-on neighbors)  with [ compare-personality ]
+to-report wrap-angle [angle]
+  report (angle mod 360)
+end
 
-  let happiness ( similar-nearby + personality-nearby ) / 2
 
-  if happiness >= min-happiness [
-    set happy? 1
+to make-friends
+  let potential-friend one-of (turtles-on neighbors)
+  if potential-friend != nobody [
+    if not link-neighbor? potential-friend [
+
+      let personality-score compare-personality potential-friend
+      let breed-score ifelse-value ([breed] of potential-friend = breed) [1] [0]
+
+      let threshold min-happiness ;; Adjust based on how hard it is to make friends
+
+      let friendship-score (personality-score * personality-weight) + (breed-score * breed-weight)
+
+      if friendship-score >= threshold [
+        ;create-link-with potential-friend
+        set happy? true
+      ]
+    ]
   ]
-
 end
 
 ; cost of friendship based on slider
@@ -80,10 +121,10 @@ end
 ; move with friend group in a dynamic manner
 @#$#@#$#@
 GRAPHICS-WINDOW
-210
+588
 10
-751
-552
+3209
+2632
 -1
 -1
 13.0
@@ -96,10 +137,10 @@ GRAPHICS-WINDOW
 0
 0
 1
--20
-20
--20
-20
+-100
+100
+-100
+100
 0
 0
 1
@@ -107,10 +148,10 @@ ticks
 30.0
 
 BUTTON
-786
-18
-849
-51
+15
+16
+78
+49
 NIL
 setup
 NIL
@@ -124,10 +165,10 @@ NIL
 1
 
 BUTTON
-881
-19
-944
-52
+110
+17
+173
+50
 NIL
 go
 T
@@ -141,55 +182,55 @@ NIL
 1
 
 SLIDER
-787
-81
-959
-114
+16
+79
+188
+112
 hums-population
 hums-population
 0
-100
-76.0
+5000
+3822.0
 1
 1
 NIL
 HORIZONTAL
 
 SLIDER
-788
-125
-960
-158
+17
+123
+189
+156
 stem-population
 stem-population
 0
-100
-74.0
+5000
+3344.0
 1
 1
 NIL
 HORIZONTAL
 
 SLIDER
-789
-224
-961
-257
+18
+222
+190
+255
 min-happiness
 min-happiness
 0
-10
-1.0
-1
+5
+2.0
+0.1
 1
 NIL
 HORIZONTAL
 
 PLOT
-791
-285
-991
-435
+20
+283
+220
+433
 plot_1
 time
 happy-students
@@ -203,12 +244,13 @@ false
 PENS
 "happy-stem" 1.0 0 -16777216 true "" "plot count stems with [happy? = 1]"
 "happy-hums" 1.0 0 -7500403 true "" "plot count hums with [happy? = 1]"
+"happy-healths" 1.0 0 -2674135 true "" "plot count healths with [happy? = 1]"
 
 BUTTON
-794
-447
-891
-480
+272
+446
+369
+507
 NIL
 export_plot1
 NIL
@@ -222,41 +264,102 @@ NIL
 1
 
 TEXTBOX
-914
-457
-1064
-496
+23
+512
+173
+551
 add filehandle in the \"export\" command to export plot1 data to a CSV file\n
 10
 0.0
 1
 
 SLIDER
-788
-170
-961
-203
+17
+168
+198
+201
 healths-population
 healths-population
 0
-100
-76.0
+5000
+3614.0
 1
 1
 NIL
 HORIZONTAL
 
 SLIDER
-1042
-171
-1234
-204
-personality-similarity
-personality-similarity
+246
+79
+438
+112
+personality-weight
+personality-weight
 0
+1
+1.0
+0.01
+1
+NIL
+HORIZONTAL
+
+INPUTBOX
+21
+446
+266
+506
+file-handle
+measurement_002.csv
+1
+0
+String
+
+PLOT
+279
+285
+549
+435
+Personality distribution
+NIL
+NIL
+0.0
+360.0
+0.0
+10.0
+true
+true
+"set-plot-x-range -10 370\nset-histogram-num-bars 360" ""
+PENS
+"stems" 1.0 0 -16777216 true "" "histogram [personality] of stems"
+"hums" 1.0 0 -7500403 true "" "histogram [personality] of hums"
+"healths" 1.0 0 -2674135 true "" "histogram [personality] of healths"
+
+SLIDER
+278
+241
+450
+274
+personality-sigma
+personality-sigma
 10
-1.1
-0.1
+70
+50.0
+1
+1
+NIL
+HORIZONTAL
+
+SLIDER
+246
+135
+439
+168
+breed-weight
+breed-weight
+0
+1
+1.0
+0.01
 1
 NIL
 HORIZONTAL
