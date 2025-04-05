@@ -7,8 +7,9 @@ breed [buss bus]
 
 undirected-link-breed [course-friendships course-friendship]
 undirected-link-breed [cross-course-friendships cross-course-friendship]
+undirected-link-breed [cross-faculty-friendships cross-faculty-friendship]
 
-links-own [accumulated-contact-hours]
+links-own [accumulated-contact-hours first-created]
 
 turtles-own [friends cross-friends personality course contact-hours emotional-capacity extroversion interests societies]
 
@@ -199,8 +200,23 @@ to go
       make-friend me self
     ]
   ]
+  ask links [ ; break friendhips
+    if check-friendship self [
+      die
+    ]
+  ]
 
   tick
+end
+
+to-report check-friendship [friendship]
+  let d random-float 1
+  let friendship-length ticks - [first-created] of friendship
+  set d (d - (friendship-length * 0.01))
+  if d > 0.95 [
+    report true
+  ]
+  report false
 end
 
 to make-friend [a b]
@@ -210,51 +226,74 @@ to make-friend [a b]
       create-friendship a b
     ]
   ]
-
 end
 
 to create-friendship [a b]
-  ifelse [course] of a = [course] of b [
-    ; yay same course
+  ifelse [breed] of a != [breed] of b[
+    ; wow not even in the same faculty/school
     ask a [
-      create-course-friendship-with b [set color [color] of a]
+      create-cross-faculty-friendship-with b [
+        set color pink
+        set first-created ticks
+      ]
     ]
   ] [
-    ; yay different course
-    ask a [
-      create-cross-course-friendship-with b
+    ifelse [course] of a = [course] of b [
+      ; yay same course
+      ask a [
+        create-course-friendship-with b [
+          set color [color] of a
+          set first-created ticks
+        ]
+      ]
+    ] [
+      ; yay different course
+      ask a [
+        create-cross-course-friendship-with b [
+          set first-created ticks
+        ]
+      ]
     ]
   ]
 end
 
 to-report check-friendship-success [a b]
-  if member? b link-neighbors [
+  ; check if theyre already friends
+  let are-friends-already false
+  ask a [
+    if link-neighbor? b [
+      set are-friends-already true
+    ]
+  ]
+  if are-friends-already [
     report false
   ]
+
   let our-contact-hours 0
   ifelse [breed] of a = [breed] of b [
     ifelse [course] of a = [course] of b [
-      set our-contact-hours ([contact-hours] of a) + 2; use course contact hours and add 2
+      set our-contact-hours (([contact-hours] of a) + course-hour-bonus); use course contact hours and add 2
     ] [ ; not in the same course
-      set our-contact-hours 2 ; set contact hours to just 2 if they are in the same faculty/school
+      set our-contact-hours faculty-hour-bonus ; set contact hours to just 2 if they are in the same faculty/school
     ]
   ] [ ; not of the same breed
-    set our-contact-hours 1 ; set contact hours to 1 if they are not in thery faculty/school
+    set our-contact-hours random-float general-hour-bonus ; set contact hours to 1 if they are not in thery faculty/school
   ]
 
   foreach [societies] of a [ x ->
     if member? x [societies] of b [
-      set our-contact-hours ( our-contact-hours + 2) ; if same societies add another 2 contact hours
+      set our-contact-hours ( our-contact-hours + 0.1) ; if same societies add another 2 contact hours
     ]
   ]
 
   let effective-contact-hours ((sqrt our-contact-hours) * ([extroversion] of a + [extroversion] of b))
   let pers-diff compare-personality a b
+
   if effective-contact-hours <= 0 [ ; you literally never seen them
     report false
   ]
   let chance pers-diff / effective-contact-hours
-  let dice-roll random 3
+  let dice-roll random 5
 
   if (chance < dice-roll) [
     report true
@@ -325,7 +364,7 @@ hum-population
 hum-population
 0
 300
-29.0
+9.0
 1
 1
 NIL
@@ -355,7 +394,7 @@ stem-population
 stem-population
 0
 300
-40.0
+15.0
 1
 1
 NIL
@@ -370,7 +409,7 @@ stem-courses
 stem-courses
 0
 35
-2.0
+3.0
 1
 1
 NIL
@@ -385,7 +424,7 @@ med-population
 med-population
 0
 300
-52.0
+19.0
 1
 1
 NIL
@@ -415,7 +454,7 @@ bus-population
 bus-population
 0
 300
-24.0
+15.0
 1
 1
 NIL
@@ -430,32 +469,32 @@ bus-courses
 bus-courses
 0
 35
-3.0
+2.0
 1
 1
 NIL
 HORIZONTAL
 
 SLIDER
-662
-216
-695
-336
+661
+363
+694
+483
 sigma
 sigma
 0
 100
-51.0
+27.0
 1
 1
 NIL
 VERTICAL
 
 PLOT
-701
-217
-1012
-337
+700
+364
+1011
+484
 personality distribution
 NIL
 NIL
@@ -533,40 +572,40 @@ NIL
 HORIZONTAL
 
 SLIDER
-663
-349
-696
-544
+662
+496
+695
+691
 extroversion-mean
 extroversion-mean
 0
 1
-0.5
+0.35
 0.001
 1
 NIL
 VERTICAL
 
 SLIDER
-701
-350
-734
-544
+700
+497
+733
+691
 extroversion-distribution
 extroversion-distribution
 0
 1
-0.1
+0.095
 0.001
 1
 NIL
 VERTICAL
 
 PLOT
-743
-350
-1010
-546
+742
+497
+1009
+693
 extroversion distribution
 NIL
 NIL
@@ -598,7 +637,7 @@ BUTTON
 49
 NIL
 go
-NIL
+T
 1
 T
 OBSERVER
@@ -616,8 +655,8 @@ SLIDER
 num-societies
 num-societies
 0
-100
-6.0
+50
+24.0
 1
 1
 NIL
@@ -650,7 +689,7 @@ stem-mean-contact-hours
 stem-mean-contact-hours
 0
 80
-12.0
+27.0
 1
 1
 NIL
@@ -664,7 +703,7 @@ SLIDER
 stem-contact-hour-distribution
 stem-contact-hour-distribution
 0
-100
+10
 3.0
 1
 1
@@ -734,7 +773,7 @@ hum-mean-contact-hours
 hum-mean-contact-hours
 0
 100
-6.0
+20.0
 1
 1
 NIL
@@ -748,7 +787,7 @@ SLIDER
 hum-contact-hour-distribution
 hum-contact-hour-distribution
 0
-100
+10
 3.0
 1
 1
@@ -800,7 +839,7 @@ med-mean-contact-hours
 med-mean-contact-hours
 0
 100
-18.0
+35.0
 1
 1
 NIL
@@ -814,8 +853,8 @@ SLIDER
 med-contact-hour-distribution
 med-contact-hour-distribution
 0
-100
-5.0
+10
+6.0
 1
 1
 NIL
@@ -844,8 +883,8 @@ SLIDER
 bus-contact-hour-distribution
 bus-contact-hour-distribution
 0
-100
-4.0
+10
+2.0
 1
 1
 NIL
@@ -867,7 +906,7 @@ true
 false
 "set-plot-x-range 0 bus-population * 2\nset-histogram-num-bars bus-population / 2" ""
 PENS
-"default" 10.0 1 -16777216 true "" "let result n-values 0 [0]\nlet students-per-course n-values bus-courses [0]\n\nask buss [\n  let id (course - (stem-courses + hum-courses + med-courses))\n  set students-per-course replace-item id students-per-course ( (item id students-per-course) + 1 ) ; count how many students are in each course\n  set result lput id result ; add the course id to a list\n]\n\nlet i 0\nlet n (length result)\nrepeat n [\n  let course-id (item i result)\n  show course-id\n  show i\n  set result replace-item i result (item course-id students-per-course)\n  set i (i + 1)\n]\n\n\n;show result\nhistogram result"
+"default" 10.0 1 -16777216 true "" "let result n-values 0 [0]\nlet students-per-course n-values bus-courses [0]\n\nask buss [\n  let id (course - (stem-courses + hum-courses + med-courses))\n  set students-per-course replace-item id students-per-course ( (item id students-per-course) + 1 ) ; count how many students are in each course\n  set result lput id result ; add the course id to a list\n]\n\nlet i 0\nlet n (length result)\nrepeat n [\n  let course-id (item i result)\n  set result replace-item i result (item course-id students-per-course)\n  set i (i + 1)\n]\n\n\n;show result\nhistogram result"
 
 PLOT
 311
@@ -895,8 +934,8 @@ SLIDER
 num-interests
 num-interests
 0
-100
-8.0
+5
+5.0
 1
 1
 NIL
@@ -911,7 +950,7 @@ min-interest-roll
 min-interest-roll
 0
 1
-0.6
+0.53
 0.01
 1
 NIL
@@ -926,7 +965,7 @@ max-society-difference
 max-society-difference
 0
 15
-3.1
+1.0
 0.1
 1
 NIL
@@ -953,6 +992,171 @@ num-societies-per-student / (count turtles)
 2
 1
 11
+
+SLIDER
+659
+198
+839
+231
+faculty-hour-bonus
+faculty-hour-bonus
+0
+10
+1.0
+0.1
+1
+NIL
+HORIZONTAL
+
+SLIDER
+660
+238
+840
+271
+society-hour-bonus
+society-hour-bonus
+0
+10
+0.6
+0.1
+1
+NIL
+HORIZONTAL
+
+SLIDER
+660
+276
+839
+309
+course-hour-bonus
+course-hour-bonus
+0
+10
+3.0
+0.1
+1
+NIL
+HORIZONTAL
+
+SLIDER
+661
+313
+846
+346
+general-hour-bonus
+general-hour-bonus
+0
+10
+0.1
+0.1
+1
+NIL
+HORIZONTAL
+
+PLOT
+660
+699
+860
+849
+cross-course-friendships
+NIL
+NIL
+0.0
+10.0
+0.0
+10.0
+true
+false
+"" ""
+PENS
+"default" 1.0 0 -16777216 true "" "plot count cross-course-friendships"
+
+PLOT
+660
+856
+860
+1006
+course-friendships
+NIL
+NIL
+0.0
+10.0
+0.0
+10.0
+true
+false
+"" ""
+PENS
+"default" 1.0 0 -16777216 true "" "plot count course-friendships"
+
+PLOT
+660
+1014
+860
+1164
+cross-faculty-friendships
+NIL
+NIL
+0.0
+10.0
+0.0
+10.0
+true
+false
+"" ""
+PENS
+"default" 1.0 0 -16777216 true "" "plot count cross-faculty-friendships"
+
+BUTTON
+856
+200
+1009
+233
+toggle course links
+let is-hidden false\nask one-of course-friendships [\n  set is-hidden hidden?\n]\nifelse is-hidden [\n  ask course-friendships [\n    show-link\n  ]\n] [\n  ask course-friendships [\n    hide-link\n  ]\n]
+NIL
+1
+T
+OBSERVER
+NIL
+NIL
+NIL
+NIL
+1
+
+BUTTON
+856
+242
+1011
+275
+toggle cross course links
+let is-hidden false\nask one-of cross-course-friendships [\n  set is-hidden hidden?\n]\nifelse is-hidden [\n  ask cross-course-friendships [\n    show-link\n  ]\n] [\n  ask cross-course-friendships [\n    hide-link\n  ]\n]
+NIL
+1
+T
+OBSERVER
+NIL
+NIL
+NIL
+NIL
+1
+
+BUTTON
+858
+283
+1012
+316
+toggle cross faculty links
+let is-hidden false\nask one-of cross-faculty-friendships [\n  set is-hidden hidden?\n]\nifelse is-hidden [\n  ask cross-faculty-friendships [\n    show-link\n  ]\n] [\n  ask cross-faculty-friendships [\n    hide-link\n  ]\n]
+NIL
+1
+T
+OBSERVER
+NIL
+NIL
+NIL
+NIL
+1
 
 @#$#@#$#@
 ## WHAT IS IT?
