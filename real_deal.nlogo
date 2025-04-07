@@ -9,9 +9,9 @@ undirected-link-breed [course-friendships course-friendship]
 undirected-link-breed [cross-course-friendships cross-course-friendship]
 undirected-link-breed [cross-faculty-friendships cross-faculty-friendship]
 
-links-own [accumulated-contact-hours first-created]
+links-own [friendship-contact-hours first-created]
 
-turtles-own [friends cross-friends personality course contact-hours emotional-capacity extroversion interests societies]
+turtles-own [personality course contact-hours emotional-capacity extroversion interests societies]
 
 to-report calculate-society-difference [soc interest num]
   report ((soc - interest + 540) mod 360) - 180
@@ -196,7 +196,7 @@ to go
 
   ask turtles [
     let me self
-    ask other turtles [
+    ask one-of  other turtles [
       make-friend me self
     ]
   ]
@@ -210,31 +210,39 @@ to go
 end
 
 to-report check-friendship [friendship]
-  let d random-float 1
-  let friendship-length ticks - [first-created] of friendship
-  set d (d - (friendship-length * 0.01))
-  if d > 0.95 [
-    report true
+  if [first-created] of friendship = ticks [
+    report false ; newly createx. let them be friends for at least one tick
   ]
-  report false
+  let friendship-length ticks - [first-created] of friendship
+  let d random-float 1
+  set d (d - friendship-length * 0.01)
+  if d > 0.95 [
+    report true ; kill friendship
+  ]
+  report false ; friendship survives
 end
 
 to make-friend [a b]
   if has-friend-capacity a and has-friend-capacity b [
-    if check-friendship-success a b [
-      ; we're friends now, nice
-      create-friendship a b
+    let success check-friendship-success a b
+    if is-list? success [
+      let dice-roll random-float friendship-roll
+      if item 0 success < friendship-roll [
+        ; we're friends now, nice
+        create-friendship a b item 1 success
+      ]
     ]
   ]
 end
 
-to create-friendship [a b]
+to create-friendship [a b our-contact-hours]
   ifelse [breed] of a != [breed] of b[
     ; wow not even in the same faculty/school
     ask a [
       create-cross-faculty-friendship-with b [
         set color pink
         set first-created ticks
+        set friendship-contact-hours our-contact-hours
       ]
     ]
   ] [
@@ -244,6 +252,7 @@ to create-friendship [a b]
         create-course-friendship-with b [
           set color [color] of a
           set first-created ticks
+          set friendship-contact-hours our-contact-hours
         ]
       ]
     ] [
@@ -251,6 +260,7 @@ to create-friendship [a b]
       ask a [
         create-cross-course-friendship-with b [
           set first-created ticks
+          set friendship-contact-hours our-contact-hours
         ]
       ]
     ]
@@ -281,8 +291,8 @@ to-report check-friendship-success [a b]
   ]
 
   foreach [societies] of a [ x ->
-    if member? x [societies] of b [
-      set our-contact-hours ( our-contact-hours + 0.1) ; if same societies add another 2 contact hours
+    if member? x ([societies] of b) [
+      set our-contact-hours ( our-contact-hours + society-hour-bonus) ; if same societies add another 2 contact hours
     ]
   ]
 
@@ -293,16 +303,15 @@ to-report check-friendship-success [a b]
     report false
   ]
   let chance pers-diff / effective-contact-hours
-  let dice-roll random 5
-
-  if (chance < dice-roll) [
-    report true
-  ]
-  report false
+  report list chance effective-contact-hours
 end
 
 to-report has-friend-capacity [a]
-  report [friends] of a <= [emotional-capacity] of a
+  let num-friends-a 0
+  ask a [
+    set num-friends-a count link-neighbors
+  ]
+  report num-friends-a <= [emotional-capacity] of a
 end
 
 to-report compare-personality [a b]
@@ -332,8 +341,8 @@ GRAPHICS-WINDOW
 55
 -55
 55
-0
-0
+1
+1
 1
 ticks
 30.0
@@ -364,7 +373,7 @@ hum-population
 hum-population
 0
 300
-9.0
+13.0
 1
 1
 NIL
@@ -379,7 +388,7 @@ hum-courses
 hum-courses
 0
 35
-2.0
+11.0
 1
 1
 NIL
@@ -394,7 +403,7 @@ stem-population
 stem-population
 0
 300
-15.0
+20.0
 1
 1
 NIL
@@ -409,7 +418,7 @@ stem-courses
 stem-courses
 0
 35
-3.0
+13.0
 1
 1
 NIL
@@ -424,7 +433,7 @@ med-population
 med-population
 0
 300
-19.0
+32.0
 1
 1
 NIL
@@ -439,7 +448,7 @@ med-courses
 med-courses
 0
 35
-3.0
+9.0
 1
 1
 NIL
@@ -454,7 +463,7 @@ bus-population
 bus-population
 0
 300
-15.0
+27.0
 1
 1
 NIL
@@ -469,17 +478,17 @@ bus-courses
 bus-courses
 0
 35
-2.0
+11.0
 1
 1
 NIL
 HORIZONTAL
 
 SLIDER
-661
-363
-694
-483
+658
+444
+691
+564
 sigma
 sigma
 0
@@ -491,10 +500,10 @@ NIL
 VERTICAL
 
 PLOT
-700
-364
-1011
-484
+697
+445
+1008
+565
 personality distribution
 NIL
 NIL
@@ -520,7 +529,7 @@ stem-course-density-distribution
 stem-course-density-distribution
 0
 100
-3.0
+5.0
 1
 1
 NIL
@@ -535,7 +544,7 @@ hum-course-density-distribution
 hum-course-density-distribution
 0
 100
-2.0
+9.0
 1
 1
 NIL
@@ -550,7 +559,7 @@ med-course-density-distribution
 med-course-density-distribution
 0
 100
-2.0
+5.0
 1
 1
 NIL
@@ -572,40 +581,40 @@ NIL
 HORIZONTAL
 
 SLIDER
-662
-496
-695
-691
+659
+577
+692
+772
 extroversion-mean
 extroversion-mean
 0
 1
-0.35
+0.494
 0.001
 1
 NIL
 VERTICAL
 
 SLIDER
-700
-497
-733
-691
+697
+578
+730
+772
 extroversion-distribution
 extroversion-distribution
 0
 1
-0.095
+0.168
 0.001
 1
 NIL
 VERTICAL
 
 PLOT
-742
-497
-1009
-693
+739
+578
+1006
+774
 extroversion distribution
 NIL
 NIL
@@ -654,7 +663,7 @@ SLIDER
 145
 num-societies
 num-societies
-0
+1
 50
 24.0
 1
@@ -934,8 +943,8 @@ SLIDER
 num-interests
 num-interests
 0
-5
-5.0
+25
+7.0
 1
 1
 NIL
@@ -950,7 +959,7 @@ min-interest-roll
 min-interest-roll
 0
 1
-0.53
+0.39
 0.01
 1
 NIL
@@ -965,7 +974,7 @@ max-society-difference
 max-society-difference
 0
 15
-1.0
+3.7
 0.1
 1
 NIL
@@ -1002,7 +1011,7 @@ faculty-hour-bonus
 faculty-hour-bonus
 0
 10
-1.0
+2.2
 0.1
 1
 NIL
@@ -1017,7 +1026,7 @@ society-hour-bonus
 society-hour-bonus
 0
 10
-0.6
+2.9
 0.1
 1
 NIL
@@ -1032,7 +1041,7 @@ course-hour-bonus
 course-hour-bonus
 0
 10
-3.0
+4.8
 0.1
 1
 NIL
@@ -1047,17 +1056,17 @@ general-hour-bonus
 general-hour-bonus
 0
 10
-0.1
+1.6
 0.1
 1
 NIL
 HORIZONTAL
 
 PLOT
-660
-699
-860
-849
+432
+956
+632
+1106
 cross-course-friendships
 NIL
 NIL
@@ -1072,10 +1081,10 @@ PENS
 "default" 1.0 0 -16777216 true "" "plot count cross-course-friendships"
 
 PLOT
-660
-856
-860
-1006
+224
+958
+424
+1108
 course-friendships
 NIL
 NIL
@@ -1090,10 +1099,10 @@ PENS
 "default" 1.0 0 -16777216 true "" "plot count course-friendships"
 
 PLOT
-660
-1014
-860
-1164
+635
+955
+835
+1105
 cross-faculty-friendships
 NIL
 NIL
@@ -1157,6 +1166,39 @@ NIL
 NIL
 NIL
 1
+
+PLOT
+18
+958
+218
+1108
+friendships
+NIL
+NIL
+0.0
+10.0
+0.0
+10.0
+true
+false
+"" ""
+PENS
+"default" 1.0 0 -16777216 true "" "plot count links"
+
+SLIDER
+662
+350
+841
+383
+friendship-roll
+friendship-roll
+0
+10
+6.3
+0.1
+1
+NIL
+HORIZONTAL
 
 @#$#@#$#@
 ## WHAT IS IT?
