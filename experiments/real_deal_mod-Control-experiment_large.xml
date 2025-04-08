@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE experiments SYSTEM "behaviorspace.dtd">
+<experiments>
+  <experiment name="Control" repetitions="10" runMetricsEveryStep="true">
+    <setup>setup</setup>
+    <go>go</go>
+    <exitCondition>ticks &gt;= 500</exitCondition>
+    <metric>count links</metric>
+    <enumeratedValueSet variable="stem-mean-contact-hours">
+      <value value="20"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="sigma">
+      <value value="30"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="extroversion-mean">
+      <value value="0.056"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="max-society-difference">
+      <value value="3.7"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="med-mean-contact-hours">
+      <value value="10"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="extroversion-distribution">
+      <value value="0.028"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="hum-mean-contact-hours">
+      <value value="27"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="bus-contact-hour-distribution">
+      <value value="5"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="hum-contact-hour-distribution">
+      <value value="7"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="med-contact-hour-distribution">
+      <value value="1"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="num-societies">
+      <value value="25"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="bus-mean-contact-hours">
+      <value value="50"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="general-hour-bonus">
+      <value value="1.9"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="num-interests">
+      <value value="7"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="stem-contact-hour-distribution">
+      <value value="2"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="friendship-roll">
+      <value value="6.3"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="min-interest-roll">
+      <value value="0.39"/>
+    </enumeratedValueSet>
+  </experiment>
+</experiments>
