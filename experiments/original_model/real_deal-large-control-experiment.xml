@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE experiments SYSTEM "behaviorspace.dtd">
+<experiments>
+  <experiment name="experiment" repetitions="10" runMetricsEveryStep="true">
+    <setup>setup</setup>
+    <go>go</go>
+    <timeLimit steps="8000"/>
+    <metric>count links</metric>
+    <enumeratedValueSet variable="bus-courses">
+      <value value="67"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="med-course-density-distribution">
+      <value value="10"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="stem-mean-contact-hours">
+      <value value="27"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="stem-course-density-distribution">
+      <value value="50"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="sigma">
+      <value value="27"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="extroversion-mean">
+      <value value="0.494"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="max-society-difference">
+      <value value="4.6"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="faculty-hour-bonus">
+      <value value="2.2"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="bus-contact-hour-distribution">
+      <value value="2"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="num-societies">
+      <value value="24"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="med-population">
+      <value value="100"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="society-hour-bonus">
+      <value value="2.9"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="stem-contact-hour-distribution">
+      <value value="3"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="med-courses">
+      <value value="51"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="hum-population">
+      <value value="35"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="hum-course-density-distribution">
+      <value value="20"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="stem-population">
+      <value value="118"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="med-mean-contact-hours">
+      <value value="35"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="extroversion-distribution">
+      <value value="0.168"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="stem-courses">
+      <value value="66"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="hum-mean-contact-hours">
+      <value value="20"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="hum-courses">
+      <value value="89"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="hum-contact-hour-distribution">
+      <value value="3"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="med-contact-hour-distribution">
+      <value value="6"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="course-hour-bonus">
+      <value value="4.8"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="general-hour-bonus">
+      <value value="1.6"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="bus-mean-contact-hours">
+      <value value="5"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="num-interests">
+      <value value="13"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="bus-population">
+      <value value="80"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="friendship-roll">
+      <value value="6.3"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="min-interest-roll">
+      <value value="0.39"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="bus-course-density-distribution">
+      <value value="20"/>
+    </enumeratedValueSet>
+  </experiment>
+</experiments>
